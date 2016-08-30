@@ -176,25 +176,22 @@ minimum requirements: A - 90%, B - 80%, C - 70%, D - 60%.
 
 ## Sample course outline 
 
-  |Week   |  Sample topics                                        |   Sample readings (*see the attached reference for details)  |
-  | ----- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-  |1      |  Class overview, what is special about spatial?       |  @Anselin1990 [@Haining2003; @Haining2009] |
-  |2      |  Overview of spatial and spatiotemporal analysis      |  Lecture slides |
-  |3      |  Making maps in R                                     |  Lecture slides |
-  |4      | Spatial and spatiotemporal analysis in R              | @Bivand2008 |
-  |5      | Spatial point pattern analysis                        | @Baddeley2006 [@Baddeley2007; @Diggle1983] |
-  |6      | Species distribution modeling                         | @Elith2011 [@Renner2013; @Stokland2011], @Chefaoui2008 [@Anderson2006; @Elith2008] |
-  |7      | Movement trajectory analysis (*project proposal due*) | @Calenge2009 [@Johnson2008] |
-  |8      | Spatiotemporal disease mapping                        | @Cromley2011 [@Waller2004; @Schrodle2011; @Schrodle2011a] |
-  |9      | Model-based geostatistics & applications              | [@Diggle1998; @Cameletti2013; @Blangiardo2013] |
-  |10     | Statistical downscaling, change of spatial supports   | @Kyriakidis2004 [@Boucher2006; @Atkinson2013; @Hayhoe2010]; |
-  |11     | Time series remote sensing imagery analysis           | @Verbesselt2010 [@Lu2004] |
-  |12     | Uncertainty of spatial data                           | @Goodchild2008a [@Zhang2002; @Chiles1999], @Kyriakidis2001 [@Foody2002; @Congalton1991; @Congalton2008] |
-  |13     | Student project                                       |   |
-  |14     | Student project                                       |   |
-  |15     | Student project presentation (*final report due*)     |   |
-
-[reading]
+|Week   |  Sample topics                                        |   Sample readings (*see the attached reference for details)  | 
+| ----- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+|1      |  Class overview, what is special about spatial?       |  @Anselin1990 [@Haining2003; @Haining2009] | 
+|2      |  Overview of spatial and spatiotemporal analysis      |  Lecture slides |
+|3      |  Making maps in R                                     |  Lecture slides | 
+|4      | Spatial and spatiotemporal analysis in R              | @Bivand2008 | 
+|5      | Spatial point pattern analysis                        | @Baddeley2006 [@Baddeley2007; @Diggle1983] | 
+|6      | Species distribution modeling                         | @Elith2011 [@Renner2013; @Stokland2011], @Chefaoui2008 [@Anderson2006; @Elith2008] | 
+|7      | Movement trajectory analysis (*project proposal due*) | @Calenge2009 [@Johnson2008] | 
+|8      | Spatiotemporal disease mapping                        | @Cromley2011 [@Waller2004; @Schrodle2011; @Schrodle2011a] | 
+|9      | Model-based geostatistics & applications              | [@Diggle1998; @Cameletti2013; @Blangiardo2013] | 
+|10     | Statistical downscaling, change of spatial supports   | @Kyriakidis2004 [@Boucher2006; @Atkinson2013; @Hayhoe2010]; | 
+|11     | Time series remote sensing imagery analysis           | @Verbesselt2010 [@Lu2004] | 
+|12     | Uncertainty of spatial data                           | @Goodchild2008a [@Zhang2002; @Chiles1999], @Kyriakidis2001 [@Foody2002; @Congalton1991; @Congalton2008] | |13     | Student project                                       |   | 
+|14     | Student project                                       |   | 
+|15     | Student project presentation (*final report due*)     |   |
 
 ## University policy
 
