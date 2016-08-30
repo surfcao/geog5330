@@ -176,7 +176,7 @@ minimum requirements: A - 90%, B - 80%, C - 70%, D - 60%.
 
 ## Sample course outline 
 
-  |Week\# |  Sample topics                                        |   Sample readings <span>(*see the attached reference for details)*</span>  |
+  |Week   |  Sample topics                                        |   Sample readings (*see the attached reference for details)  |
   | ----- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
   |1      |  Class overview, what is special about spatial?       |  @Anselin1990 [@Haining2003; @Haining2009] |
   |2      |  Overview of spatial and spatiotemporal analysis      |  Lecture slides |
