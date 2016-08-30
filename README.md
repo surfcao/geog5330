@@ -177,7 +177,7 @@ minimum requirements: A - 90%, B - 80%, C - 70%, D - 60%.
 ## Sample course outline 
 
   |Week\# |  Sample topics                                        |   Sample readings <span>(*see the attached reference for details)*</span>
-  | ----- | ------------------------------------------------------| ------------------------------------------------------------------------------------------------------ |
+  | ----- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
   |1      |  Class overview, what is special about spatial?       |  @Anselin1990 [@Haining2003; @Haining2009] |
   |2      |  Overview of spatial and spatiotemporal analysis      |  Lecture slides |
   |3      |  Making maps in R                                     |  Lecture slides |
@@ -190,9 +190,9 @@ minimum requirements: A - 90%, B - 80%, C - 70%, D - 60%.
   |10     | Statistical downscaling, change of spatial supports   | @Kyriakidis2004 [@Boucher2006; @Atkinson2013; @Hayhoe2010]; |
   |11     | Time series remote sensing imagery analysis           | @Verbesselt2010 [@Lu2004] |
   |12     | Uncertainty of spatial data                           | @Goodchild2008a [@Zhang2002; @Chiles1999], @Kyriakidis2001 [@Foody2002; @Congalton1991; @Congalton2008] |
-  |13     | Student project                                       |  |
-  |14     | Student project                                       |  |
-  |15     | Student project presentation (*final report due*)     |  |
+  |13     | Student project                                       |   |
+  |14     | Student project                                       |   |
+  |15     | Student project presentation (*final report due*)     |   |
 
 [reading]
 
