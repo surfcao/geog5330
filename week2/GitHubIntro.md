@@ -9,6 +9,7 @@ title: Geog5330: GitHub Introduction
 + Course projects will also use GitHub repositories: one repository for each course project 
 + Each student will need a personal GitHub account. They can be created [here](https://github.com/personal).
 + GitHub provides an unlimited number of free public repositories to each user. Via GitHub Education students can sign up for free private GitHub accounts (see [here](https://education.github.com)).
+
 <!--
 + All private GitHub accounts required for this class will be provided by the instructor via [GitHub Classroom](https://classroom.github.com/)
 -->
@@ -28,42 +29,42 @@ title: Geog5330: GitHub Introduction
 
 + Finding help from command-line 
 
-`git <command> --help`
+	`git <command> --help`
 
 + Initialize a directory as a Git repository
 
-`git init`
+	`git init`
 	
 + Add files to Git repository (staging area) 
 
-`git add myfile`
+	`git add myfile`
 
 After editing file(s) in your repos, record a snapshot of the staging area 
 
-`git commit -am "some edits"`
+	`git commit -am "some edits"`
 
 
 ## GitHub Basics from Command-Line
 
 + Generate a new remote repository. Alternatively, create the repository online on the GitHub site.
 
-`git remote add origin https://github.com/tgirke/myrepos.git`
+	`git remote add origin https://github.com/tgirke/myrepos.git`
 
 + Push updates to remote. Next time one can just use `git push`
 
-`git push -u origin master`
+	`git push -u origin master`
 
 + Clone existing remote repository
     
-`git clone git@github.com:<user_name>/<repos_name>.git`
+	`git clone git@github.com:<user_name>/<repos_name>.git`
 
 + Before working on project, update local git repos 
 
-`git pull`
+	`git pull`
 
 + Make changes and recommit local to remote 
 
-`git commit -am "some edits"; git push -u origin master`
+	`git commit -am "some edits"; git push -u origin master`
 
 
 ## Using GitHub from RStudio
