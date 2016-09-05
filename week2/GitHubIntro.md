@@ -1,15 +1,15 @@
 ---
-title: Geog5330: GitHub Introduction
+title: "Geog5330: GitHub Introduction"
+author: "Guofeng Cao modified based on Dr. Thomas Girke's class at UC Riverside"
 ---
 
-## Geog5330 and GitHub 
+## GitHub and this class
 
-+ Note, this class will make heavy use of GitHub 
++ This class will make heavy use of GitHub 
 + Homework assignments will be submitted to GitHub repositories: one repository for each student
 + Course projects will also use GitHub repositories: one repository for each course project 
 + Each student will need a personal GitHub account. They can be created [here](https://github.com/personal).
 + GitHub provides an unlimited number of free public repositories to each user. Via GitHub Education students can sign up for free private GitHub accounts (see [here](https://education.github.com)).
-
 <!--
 + All private GitHub accounts required for this class will be provided by the instructor via [GitHub Classroom](https://classroom.github.com/)
 -->
