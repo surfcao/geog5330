@@ -3,6 +3,8 @@ title: "Geog5330: GitHub Introduction"
 author: "Guofeng Cao modified based on Dr. Thomas Girke's class at UC Riverside"
 ---
 
+# GitHub Introduction
+
 ## GitHub and this class
 
 + This class will make heavy use of GitHub 
