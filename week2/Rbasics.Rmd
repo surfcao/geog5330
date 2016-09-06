@@ -48,7 +48,7 @@ beginners and advanced.
 Some userful shortcuts: `Ctrl+Enter` (send code), `Ctrl+Shift+C`
 (comment/uncomment), `Ctrl+1/2` (switch window focus)
 
-# Getting Started
+# Getting Started with R
 
 ## Installation of R and packages
 
@@ -165,6 +165,8 @@ Some userful shortcuts: `Ctrl+Enter` (send code), `Ctrl+Shift+C`
 	$ R CMD BATCH my_script.R 
 	$ R --slave < my_script.R 
 	```
+	
+	
 
 ## Data Types 
 
