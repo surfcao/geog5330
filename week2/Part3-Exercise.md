@@ -123,4 +123,6 @@ plot(a$HOUR,a$PERSONS, type='o', col='blue' )
 Homework
 ========
 
-Based on the `accident` dataset, please write a function (see the [RBascis.md](./RBasics.md)), say named `get-state-fatality(stateName, display)`, to return the monthly fatalites of at state `stateName` and if `display=TRUE` also to plot the fatalities by months.
+Based on the `accident` dataset, please write a function (see the [RBascis.md](./RBasics.md)), say named `get-state-fatality(stateName, display)`, to return the monthly fatalites of at state `stateName` and if `display=TRUE` also to plot the fatalities by months. The following is the code for each U.S. states and Puerto Rico.
+
+01 Alabama 31 Nebraska 02 Alaska 32 Nevada 04 Arizona 33 New Hampshire 05 Arkansas 34 New Jersey 06 California 35 New Mexico 08 Colorado 36 New York 09 Connecticut 37 North Carolina 10 Delaware 38 North Dakota 11 District of Columbia 39 Ohio 12 Florida 40 Oklahoma 13 Georgia 41 Oregon 15 Hawaii 42 Pennsylvania 16 Idaho 43 Puerto Rico 17 Illinois 44 Rhode Island 18 Indiana 45 South Carolina 19 Iowa 46 South Dakota 20 Kansas 47 Tennessee 21 Kentucky 48 Texas 22 Louisiana 49 Utah 23 Maine 50 Vermont 24 Maryland 52 Virgin Islands (since 2004) 25 Massachusetts 51 Virginia 26 Michigan 53 Washington 27 Minnesota 54 West Virginia 28 Mississippi 55 Wisconsin 29 Missouri 56 Wyoming 30 Montana
