@@ -65,7 +65,7 @@ plot(a$HOUR,a$PERSONS, type='o', col='blue' )
 # Homework
 
 Based on the `accident` dataset, please write a function (see the
-							  [RBascis.md](./RBasics.md)),
+							  [Rbascis.md](./Rbasics.md)),
 say named `get-state-fatality(stateName, display)`, to return the monthly
 fatalites of at state `stateName` and if `display=TRUE` also to plot the
 fatalities by months. The following is the code for each U.S. states and
