@@ -1,0 +1,810 @@
+---
+title: "Week 2: Getting started with R"
+output: github_document
+---
+
+```{r global_options, echo=FALSE, results='asis'}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',  warning=FALSE, message=FALSE)
+```
+
+# Overview
+
+## What is R?
+- R is a programming environment 
+    * uses a well-developed but simple programming language
+    * allows for rapid development of new tools according to user demand
+    * these tools are distributed as packages, which any user can download to customize the R environment 
+
+## Why using R?
+
+- Complete statistical environment and programming language
+- Efficient functions and data structures for data analysis
+- Powerful graphics
+- Access to fast growing number of analysis packages
+- Most widely used language in applied statistics
+- Is standard for data mining and statistical analysis
+- Technical advantages: free, open-source, available for all OSs
+
+## R Working Environments
+
+Some R working environments with support for syntax highlighting and
+utilities to send code to the R console: 
+
+* [RStudio](https://www.rstudio.com/products/rstudio/features): excellent choice for beginners ([Cheat Sheet](http://www.rstudio.com/wp-content/uploads/2016/01/rstudio-IDE-cheatsheet.pdf)) 
+* Basic R code editors provided by Rguis 
+* [gedit](https://wiki.gnome.org/Apps/Gedit), [Rgedit](http://rgedit.sourceforge.net/), [RKWard](https://rkward.kde.org/), [Eclipse](http://www.walware.de/goto/statet), [Tinn-R](http://www.sciviews.org/Tinn-R/), [Notepad++](https://notepad-plus-plus.org/), [NppToR](http://sourceforge.net/projects/npptor/)
+* [Vim-R-Tmux](http://manuals.bioinformatics.ucr.edu/home/programming-in-r/vim-r): R working environment based on vim and tmux 
+* [Emacs](http://www.xemacs.org/Download/index.html) ([ESS add-on package](http://ess.r-project.org/))
+	
+### Example: RStudio 
+
+New integrated development environment (IDE) for
+[R](http://www.rstudio.com/ide/download/). Highly functional for both
+beginners and advanced.
+
+<center><img title="RStudio" src="images/RStudio.png" width=50%/></center>
+<center> RStudio IDE</center>
+
+Some userful shortcuts: `Ctrl+Enter` (send code), `Ctrl+Shift+C`
+(comment/uncomment), `Ctrl+1/2` (switch window focus)
+
+# Getting Started
+
+## Installation of R and packages
+
+1. Base R and most R packages are available for download from the Comprehensive R Archive Network (CRAN) 
+	* [http://www.r-project.org/](http://www.r-project.org/J)
+	* base R comes with a number of basic data management, analysis, and graphical tools
+	* R's power and flexibility, however, lie in its array of packages
+	      (currently more 8,000!)
+
+2. Install RStudio from [RStudio](http://www.rstudio.com/ide/download).
+
+3. Install CRAN Packages from R console like this:
+
+	```{r install_cran, echo=TRUE, eval=FALSE}
+	install.packages(c("pkg1", "pkg2")) 
+	install.packages("pkg.zip", repos=NULL)
+	```
+## Startup and Closing R 
+
+- *Starting R*:
+    The R GUI versions, including RStudio, under Windows and Mac OS X can be
+    opened by double-clicking their icons. Alternatively, one can start it by
+    typing `R` in a terminal (default under Linux). 
+
+- *Startup/Closing Behavior*:
+    The R environment is controlled by hidden files in the startup directory:
+    `.RData`, `.Rhistory` and `.Rprofile` (optional). 
+	
+    
+- *Closing R*:
+
+	```{r closing_r, eval=FALSE}
+	q()  
+	```
+	```
+	Save workspace image? [y/n/c]:
+	```
+        
+* *Note*:
+    When responding with `y`, then the entire R workspace will be written to
+    the `.RData` file which can become very large. Often it is sufficient to just
+    save an analysis protocol in an R source file. This way one can quickly
+    regenerate all data sets and objects. 
+
+## Navigating directories
+
+- Create an object with the assignment operator `<-` or `=`
+	```{r r_assignment, eval=FALSE}
+	object <- ...
+	```
+
+- List objects in current R session
+	```{r r_ls, eval=FALSE}
+	ls()
+	```
+
+- Return content of current working directory
+	```{r r_dirshow, eval=FALSE}
+	dir()
+	```
+
+- Return path of current working directory
+	```{r r_dirpath, eval=FALSE}
+	getwd()
+	```
+
+- Change current working directory
+	```{r r_setwd, eval=FALSE}
+	setwd("/home/user")
+	```
+## Basic Syntax
+
+- General R command syntax
+
+	```{r r_syntax, eval=FALSE}
+	object <- function_name(arguments) 
+	object <- object[arguments] 
+	```
+
+- Finding help
+
+	```{r r_find_help, eval=FALSE}
+	?function_name
+	```
+
+- Load a library/package
+
+	```{r r_package_load, eval=FALSE}
+	library("my_library") 
+	```
+
+- List functions defined by a library
+
+	```{r r_package_functions, eval=FALSE}
+	library(help="my_library")
+	```
+
+- Load library manual (PDF or HTML file)
+
+	```{r r_load_vignette, eval=FALSE}
+	vignette("my_library") 
+	```
+
+- Execute an R script from within R
+
+	```{r r_execute_script, eval=FALSE}
+	source("my_script.R")
+	```
+
+- Execute an R script from command-line (the first of the three options is preferred)
+
+	```{sh sh_execute_script, eval=FALSE}
+	$ Rscript my_script.R
+	$ R CMD BATCH my_script.R 
+	$ R --slave < my_script.R 
+	```
+
+## Data Types 
+
+- Numeric data
+
+	Example: `1, 2, 3, ...`
+
+	```{r r_numeric_data, eval=TRUE}
+
+	x <- c(1, 2, 3)
+	x
+	is.numeric(x)
+	as.character(x)
+	```
+
+- Character data
+
+	Example: `"a", "b", "c", ...`
+
+	```{r r_character_data, eval=TRUE}
+	x <- c("1", "2", "3")
+	x
+	is.character(x)
+	as.numeric(x)
+	```
+
+- Complex data
+
+	Example: mix of both
+
+	```{r r_complex_data, eval=TRUE}
+	c(1, "b", 3)
+	```
+
+- Logical data
+
+	Example: `TRUE` of `FALSE`
+
+	```{r r_logical_data, eval=TRUE}
+	x <- 1:10 < 5
+	x  
+	!x
+	which(x) # Returns index for the 'TRUE' values in logical vector
+	```
+
+## Data objects
+
+### Object types
+
+- Vectors (1D)
+
+	Definition: `numeric` or `character`
+
+	```{r r_vector_object, eval=TRUE}
+	myVec <- 1:10; names(myVec) <- letters[1:10]  
+	myVec[1:5]
+	myVec[c(2,4,6,8)]
+	myVec[c("b", "d", "f")]
+	```
+
+- Factors (1D)
+
+	Definition: vectors with grouping information
+
+	```{r r_factor_object, eval=TRUE}
+	factor(c("dog", "cat", "mouse", "dog", "dog", "cat"))
+	```
+
+- Matrices (2D)
+
+	Definition: two dimensional structures with data of same type
+
+	```{r r_matrix_object, eval=TRUE}
+	myMA <- matrix(1:30, 3, 10, byrow = TRUE) 
+	class(myMA)
+	myMA[1:2,]
+	myMA[1, , drop=FALSE]
+	```
+
+- Data Frames (2D)
+
+	Definition: two dimensional objects with data of variable types
+
+	```{r r_dataframe_object, eval=TRUE}
+	myDF <- data.frame(Col1=1:10, Col2=10:1) 
+	myDF[1:2, ]
+	```
+
+- Arrays
+
+	Definition: data structure with one, two or more dimensions
+
+
+- Lists
+
+	Definition: containers for any object type
+
+	```{r r_list_object, eval=TRUE}
+	myL <- list(name="Fred", wife="Mary", no.children=3, child.ages=c(4,7,9)) 
+	myL
+	myL[[4]][1:2] 
+	```
+
+- Functions
+
+	Definition: piece of code
+
+	```{r r_function_object, eval=FALSE}
+	myfct <- function(arg1, arg2, ...) { 
+		function_body 
+	}
+	```
+
+### Subsetting of data objects
+
+- Subsetting by positive or negative index/position numbers
+
+	```{r r_subset_by_index, eval=TRUE}
+	myVec <- 1:26; names(myVec) <- LETTERS 
+	myVec[1:4]
+	```
+
+- Subsetting by same length logical vectors
+
+	```{r r_subset_by_logical, eval=TRUE}
+	myLog <- myVec > 10
+	myVec[myLog] 
+	```	
+
+- Subsetting by field names
+
+	```{r r_subset_by_names, eval=TRUE}
+	myVec[c("B", "K", "M")]
+	```
+
+- Subset with `$` sign: references a single column or list component by its name 
+
+	```{r r_subset_by_dollar, eval=TRUE}
+	iris$Species[1:8]
+	```
+
+## Important Utilities
+	
+- Combining Objects
+
+	The `c` function combines vectors and lists
+
+	```{r r_combine_vectors, eval=TRUE}
+	c(1, 2, 3)
+	x <- 1:3; y <- 101:103
+	c(x, y)
+	iris$Species[1:8]
+	```
+
+	The `cbind` and `rbind` functions can be used to append columns and rows, respecively.
+
+	```{r r_cbind_rbind, eval=TRUE}
+	ma <- cbind(x, y)
+	ma
+	rbind(ma, ma)
+	```
+
+- Accessing Dimensions of Objects
+
+	Length and dimension information of objects
+
+	```{r r_length_dim, eval=TRUE}
+	length(iris$Species)
+	dim(iris)
+	```
+
+- Accessing Name Slots of Objects
+
+       Accessing row and column names of 2D objects
+	```{r col_row_names, eval=TRUE}
+	rownames(iris)[1:8]
+	colnames(iris)
+	```
+
+- Return name field of vectors and lists
+
+	```{r name_slots, eval=TRUE}
+	names(myVec)
+	names(myL)
+	```
+
+- Sorting Objects
+
+	The function `sort` returns a vector in ascending or descending order
+
+	```{r sort_objects, eval=TRUE}
+	sort(10:1)
+	```
+
+	The function `order` returns a sorting index for sorting an object
+	```{r order_objects, eval=TRUE}
+	sortindex <- order(iris[,1], decreasing = FALSE)
+	sortindex[1:12]
+	iris[sortindex,][1:2,]
+	sortindex <- order(-iris[,1]) # Same as decreasing=TRUE
+	```
+	Sorting multiple columns
+	```{r order_columns, eval=TRUE}
+	iris[order(iris$Sepal.Length, iris$Sepal.Width),][1:2,]
+	```
+
+## Operators and Calculations
+
+- Comparison Operators
+
+	Comparison operators: `==`, `!=`, `<`, `>`, `<=`, `>=`
+	```{r comparison_operators, eval=TRUE}
+	1==1
+	```
+	Logical operators: AND: `&`, OR: `|`, NOT: `!`
+	```{r logical_operators, eval=TRUE}
+	x <- 1:10; y <- 10:1
+	x > y & x > 5
+	```
+
+- Basic Calculations
+
+	To look up math functions, see Function Index [here](http://cran.at.r-project.org/doc/manuals/R-intro.html#Function-and-variable-index)
+	```{r logical_calculations, eval=TRUE}
+	x + y
+	sum(x)
+	mean(x)
+	apply(iris[1:6,1:3], 1, mean) 
+	```
+
+## Reading and Writing External Data
+- Import of tabular data
+
+	Import of a tab-delimited tabular file
+	```{r read_delim, eval=FALSE}
+	myDF <- read.delim("myData.xls", sep="\t")
+	```
+
+	Import of Excel file. Note: working with tab- or comma-delimited files is more flexible and preferred.
+	```{r read_excel, eval=FALSE}
+	library(gdata)
+	myDF <- read.xls"myData.xls")
+	```
+<!--
+	Import of Google Sheets. The following example imports a sample Google Sheet from [here](https://docs.google.com/spreadsheets/d/1U-32UcwZP1k3saKeaH1mbvEAOfZRdNHNkWK2GI1rpPM/edit#gid=472150521).
+	Detailed instructions for interacting from R with Google Sheets with the required `googlesheets` package are [here](https://github.com/jennybc/googlesheets).
+
+	```{r read_gs, eval=FALSE}
+	library("googlesheets"); library("dplyr"); library(knitr)
+	gs_auth() # Creates authorizaton token (.httr-oauth) in current directory if not present
+	sheetid <-"1U-32UcwZP1k3saKeaH1mbvEAOfZRdNHNkWK2GI1rpPM"
+	gap <- gs_key(sheetid)
+	mysheet <- gs_read(gap, skip=4)
+	myDF <- as.data.frame(mysheet)
+	myDF
+	```
+-->
+
+- Export of tabular data
+	```{r write_table, eval=FALSE}
+	write.table(myDF, file="myfile.xls", sep="\t", quote=FALSE, col.names=NA)
+	```
+
+- Line-wise import
+	```{r readlines, eval=FALSE}
+	myDF <- readLines("myData.txt")
+	```
+
+- Line-wise export
+	```{r writelines, eval=FALSE}
+	writeLines(month.name, "myData.txt")
+	```
+
+- Copy and paste into R
+
+	On Windows/Linux systems
+	```{r paste_windows, eval=FALSE}
+	read.delim("clipboard") 
+	```
+	On Mac OS X systems
+	```{r paste_osx, eval=FALSE}
+	read.delim(pipe("pbpaste")) 
+	```
+
+- Copy and paste from R 
+
+	On Windows/Linux systems
+	```{r copy_windows, eval=FALSE}
+	write.table(iris, "clipboard", sep="\t", col.names=NA, quote=F) 
+	```
+
+	On Mac OS X systems
+	```{r copy_osx, eval=FALSE}
+	zz <- pipe('pbcopy', 'w')
+	write.table(iris, zz, sep="\t", col.names=NA, quote=F)
+	close(zz) 
+	```
+
+## Useful R Functions
+
+- Unique entries
+
+	Make vector entries unique with `unique`
+
+	```{r unique, eval=TRUE}
+	length(iris$Sepal.Length)
+	length(unique(iris$Sepal.Length))
+	```
+
+- Count occurrences
+
+	Count occurrences of entries with `table`
+	```{r table, eval=TRUE}
+	table(iris$Species)
+	```
+
+- Aggregate data
+
+	Compute aggregate statistics with `aggregate`
+	```{r aggregate, eval=TRUE}
+	aggregate(iris[,1:4], by=list(iris$Species), FUN=mean, na.rm=TRUE)
+	```
+
+- Intersect data
+
+	Compute intersect between two vectors with `%in%`
+	```{r intersect, eval=TRUE}
+	month.name %in% c("May", "July")
+	```
+
+- Merge data frames
+
+	Join two data frames by common field entries with `merge` (here row names `by.x=0`). To obtain only the common rows, change `all=TRUE` to `all=FALSE`. To merge on specific columns, refer to them by their position numbers or their column names.
+	```{r merge, eval=TRUE}
+	frame1 <- iris[sample(1:length(iris[,1]), 30), ]
+	frame1[1:2,]
+	dim(frame1)
+	my_result <- merge(frame1, iris, by.x = 0, by.y = 0, all = TRUE)
+	dim(my_result)
+	```
+# Graphics in R
+
+## Advantages
+
+- Powerful environment for visualizing scientific data
+- Integrated graphics and statistics infrastructure
+- Publication quality graphics
+- Fully programmable 
+- Highly reproducible
+- Full [LaTeX](http://www.latex-project.org/) and Markdown support via `knitr` and `R markdown`
+- Vast number of R packages with graphics utilities
+
+## Documentation for R Graphics
+
+** General **
+
+- Graphics Task Page - [URL](http://cran.r-project.org/web/views/Graphics.html)
+- R Graph Gallery - [URL](http://addictedtor.free.fr/graphiques/allgraph.php)
+- R Graphical Manual - [URL](http://cged.genes.nig.ac.jp/RGM2/index.php)
+- Paul Murrell's book R (Grid) Graphics - [URL](http://www.stat.auckland.ac.nz/~paul/RGraphics/rgraphics.html)
+
+**Interactive graphics  **
+
+- rggobi` (GGobi) - [URL](http://www.ggobi.org/)
+- `iplots` - [URL](http://www.rosuda.org/iplots/)
+- Open GL (`rgl`) - [URL](http://rgl.neoscientists.org/gallery.shtml)
+
+## Graphics Environments
+
+**Viewing and saving graphics in R**
+
+- On-screen graphics
+- postscript, pdf, svg
+- jpeg, png, wmf, tiff, ...
+
+**Four major graphic environments**
+
+(a) Low-level infrastructure
+
+- R Base Graphics (low- and high-level)
+- `grid`: [Manual](http://www.stat.auckland.ac.nz/~paul/grid/grid.html)
+        
+(b) High-level infrastructure
+        \begin{itemize}
+- `lattice`: [Manual](http://lmdvr.r-forge.r-project.org), [Intro](http://www.his.sunderland.ac.uk/~cs0her/Statistics/UsingLatticeGraphicsInR.htm), [Book](http://www.amazon.com/Lattice-Multivariate-Data-Visualization-Use/dp/0387759689)
+- `ggplot2`: [Manual](http://had.co.nz/ggplot2/), [Intro](http://www.ling.upenn.edu/~joseff/rstudy/summer2010_ggplot2_intro.html), [Book](http://had.co.nz/ggplot2/book/)
+
+## Base Graphics: Overview
+
+__Important high-level plotting functions__
+
+- `plot`: generic x-y plotting
+- `barplot`: bar plots
+- `boxplot`: box-and-whisker plot
+- `hist`: histograms
+- `pie`: pie charts
+- `dotchart`: cleveland dot plots
+- `image, heatmap, contour, persp`: functions to generate image-like plots
+- `qqnorm, qqline, qqplot`: distribution comparison plots
+- `pairs, coplot`: display of multivariant data
+
+__Help on graphics functions__
+
+- `?myfct`
+- `?plot`
+- `?par`
+
+### Preferred Object Types
+
+- Matrices and data frames
+- Vectors
+- Named vectors
+
+## Scatter Plots
+
+### Basic Scatter Plot
+
+- Sample data set for subsequent plots
+
+	```{r sample_data1, eval=TRUE}
+	set.seed(1410)
+	y <- matrix(runif(30), ncol=3, dimnames=list(letters[1:10], LETTERS[1:3]))
+	```
+
+- Plot data
+	```{r basic_scatter_plot, eval=TRUE}
+	plot(y[,1], y[,2]) 
+	```
+
+### All pairs
+
+	```{r pairs_scatter_plot, eval=TRUE}
+	pairs(y) 
+	```
+
+### With labels
+
+	```{r labels_scatter_plot, eval=TRUE}
+	plot(y[,1], y[,2], pch=20, col="red", main="Symbols and Labels")
+	text(y[,1]+0.03, y[,2], rownames(y))
+	```
+
+## More examples
+
+- Print instead of symbols the row names
+
+	```{r row_scatter_plot, eval=TRUE}
+	plot(y[,1], y[,2], type="n", main="Plot of Labels")
+	text(y[,1], y[,2], rownames(y)) 
+	```
+
+- Usage of important plotting parameters
+
+	```{r plot_usage, eval=FALSE}
+	grid(5, 5, lwd = 2) 
+	op <- par(mar=c(8,8,8,8), bg="lightblue")
+	plot(y[,1], y[,2], type="p", col="red", cex.lab=1.2, cex.axis=1.2, 
+	     cex.main=1.2, cex.sub=1, lwd=4, pch=20, xlab="x label", 
+	     ylab="y label", main="My Main", sub="My Sub")
+	par(op)
+	```
+- Important arguments
+
+	- `mar`: specifies the margin sizes around the plotting area in order: `c(bottom, left, top, right)` 
+	- `col`: color of symbols
+	- `pch`: type of symbols, samples: `example(points)`
+	- `lwd`: size of symbols
+	- `cex`: control font sizes
+	- For details see `?par`
+
+
+### Add regression line 
+
+	```{r plot_regression, eval=TRUE}
+	plot(y[,1], y[,2])
+	myline <- lm(y[,2]~y[,1]); abline(myline, lwd=2) 
+	summary(myline) 
+	```
+
+### Log scale
+
+	- Same plot as above, but on log scale
+
+	```{r plot_regression_log, eval=TRUE}
+	plot(y[,1], y[,2], log="xy") 
+	```
+
+### Add a mathematical expression
+
+```{r plot_regression_math, eval=TRUE}
+plot(y[,1], y[,2]); text(y[1,1], y[1,2], expression(sum(frac(1,sqrt(x^2*pi)))), cex=1.3) 
+```
+
+## Line Plots
+
+### Single data set
+
+```{r plot_line_single, eval=TRUE}
+plot(y[,1], type="l", lwd=2, col="blue") 
+```
+
+### Many Data Sets
+
+Plots line graph for all columns in data frame `y`. The `split.screen` function is used in this example in a for loop to overlay several line graphs in the same plot. 
+
+```{r plot_line_many, eval=TRUE}
+split.screen(c(1,1)) 
+plot(y[,1], ylim=c(0,1), xlab="Measurement", ylab="Intensity", type="l", lwd=2, col=1)
+for(i in 2:length(y[1,])) { 
+	screen(1, new=FALSE)
+	plot(y[,i], ylim=c(0,1), type="l", lwd=2, col=i, xaxt="n", yaxt="n", ylab="", xlab="", main="", bty="n") 
+}
+close.screen(all=TRUE) 
+```
+
+## Bar Plots 
+
+### Basics
+
+```{r plot_bar_simple, eval=TRUE}
+barplot(y[1:4,], ylim=c(0, max(y[1:4,])+0.3), beside=TRUE, legend=letters[1:4]) 
+text(labels=round(as.vector(as.matrix(y[1:4,])),2), x=seq(1.5, 13, by=1) + sort(rep(c(0,1,2), 4)), y=as.vector(as.matrix(y[1:4,]))+0.04) 
+```
+	    
+### Error Bars
+
+```{r plot_bar_error, eval=TRUE}
+bar <- barplot(m <- rowMeans(y) * 10, ylim=c(0, 10))
+stdev <- sd(t(y))
+arrows(bar, m, bar, m + stdev, length=0.15, angle = 90)
+```
+
+## Histograms
+
+```{r plot_hist, eval=TRUE}
+hist(y, freq=TRUE, breaks=10)
+```
+
+## Density Plots
+
+```{r plot_dens, eval=TRUE}
+plot(density(y), col="red")
+```
+
+## Pie Charts
+
+```{r plot_pie, eval=TRUE}
+pie(y[,1], col=rainbow(length(y[,1]), start=0.1, end=0.8), clockwise=TRUE)
+legend("topright", legend=row.names(y), cex=1.3, bty="n", pch=15, pt.cex=1.8, 
+col=rainbow(length(y[,1]), start=0.1, end=0.8), ncol=1) 
+```
+
+## Color Selection Utilities
+
+- Default color palette and how to change it
+
+```{r color_palette, eval=TRUE}
+palette()
+palette(rainbow(5, start=0.1, end=0.2))
+palette()
+palette("default")
+```
+
+- The `gray` function allows to select any type of gray shades by providing values from 0 to 1
+
+```{r color_grey, eval=TRUE}
+gray(seq(0.1, 1, by= 0.2))
+```
+
+- Color gradients with `colorpanel` function from `gplots` library`
+
+```{r color_gradient, eval=TRUE}
+library(gplots)
+colorpanel(5, "darkblue", "yellow", "white")
+```
+
+Much more on colors in R see Earl Glynn's color chart [here](http://research.stowers-institute.org/efg/R/Color/Chart/)
+
+
+## Saving Graphics to File
+
+- After the `pdf()` command all graphs are redirected to file `test.pdf`. Works for all common formats similarly: jpeg, png, ps, tiff, ...
+```{r save_graphics, eval=FALSE}
+pdf("test.pdf")
+plot(1:10, 1:10)
+dev.off() 
+```
+
+- Generates Scalable Vector Graphics (SVG) files that can be edited in vector graphics programs, such as InkScape.
+
+```{r save_graphics_svg, eval=FALSE}
+library("RSvgDevice")
+devSVG("test.svg")
+plot(1:10, 1:10)
+dev.off() 
+```
+
+# Basic Statistics
+
+- `summary` is a generic function to summarize many types of R objects, including datasets.
+```{r summary_example, evalu=T}
+  summary(iris)
+```
+
+- Compare the mean of two groups
+
+```{r ttest_example, evalu=T}
+s=iris[which(iris$Species=='setosa'), 1]; 
+v=iris[which(iris$Species=='virginica'), 1];
+t.test(s,v, paired=T)
+```
+
+
+- Check the normality of my data
+
+```{r normality_example, evalu=T}
+s=iris[which(iris$Species=='setosa'), 1]; 
+shapiro.test(s);
+hist(s, breaks=10);
+```
+
+ - Test correlation between two data sets
+
+```{r cor_example, evalu=T}
+s=iris[which(iris$Species=='setosa'), 1]; 
+v=iris[which(iris$Species=='setosa'), 2];
+cor.test(s,v)
+```
+
+- Build a linear model
+
+```{r lm_example, evalu=T}
+myModel = lm(iris[,1] ~ iris[, 2] + iris[, 3] + iris[, 4])
+summary(myModel)
+step(myModel, direction="backward")
+```
+
+- ANOVA 
+
+```{r anova_example, evalu=T}
+myAnova<-aov(iris[,1] ~ iris[, 5]) 
+summary(myAnova)
+```

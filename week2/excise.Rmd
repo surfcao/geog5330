@@ -1,0 +1,73 @@
+---
+title: "Week 2: R Exercise and Homework"
+output: github_document
+---
+
+# Analysis Routine
+
+On August 29, DJ Patil, the Chief Data Scientist in the White House Office
+of Science and Technology Policy, and Mark Rosekind, the Administrator of
+the National Highway Traffic Safety Administration (NHTSA) announced the
+release of a data set documenting all traffic fatalities occurring in the
+United States in 2015. In this excise, we tried to use the command we have
+learned to analyze this dataset.
+
+## Analysis Routine: Data Import
+
+- To get started with this exercise, direct your R session to a dedicated
+workshop directory and download into this directory the following sample
+tables. Then import the files into Excel and save them as tab delimited
+text files.
+
+    - [accident](./accident.csv)
+    - [Description of the fields in the dataset](ftp://ftp.nhtsa.dot.gov/FARS/FARS-DOC/Analytical User Guide/USERGUIDE-2015.pdf)
+
+- Import the tables into R
+
+```{r import_data1, eval=T}
+accidents <- read.delim(file="accident.csv", header=T, sep=",") 
+head(accidents)
+names(accidents)
+``` 
+- Preprocess the data
+
+```{r import_data2, eval=T}
+#Only include data with correct long/lat coordinates and valid hours
+accidents <- subset(accidents, LONGITUD!=999.99990 &  LONGITUD!=888.88880 & LONGITUD!=777.77770 & HOUR<30)
+``` 
+
+- Aggregate the number of accidents by month 
+
+```{r import_data3, eval=T}
+hist(accidents$MONTH)
+``` 
+
+- Aggregate the number of accidents by hour 
+
+```{r import_data4, eval=T}
+hist(accidents$HOUR)
+``` 
+
+- Aggregate the number of persons by month
+
+```{r import_data5, eval=T}
+a<-aggregate(PERSONS~MONTH, accidents,sum)
+plot(a$MONTH, a$PERSONS, type='o', col='blue')
+``` 
+
+- Aggregate the number of persons by hour
+
+```{r import_data6, eval=T}
+a<-aggregate(PERSONS~HOUR, accidents,sum)
+plot(a$HOUR,a$PERSONS, type='o', col='blue' )
+``` 
+
+# Homework
+
+Based on the `accident` dataset, please write a function (see the
+							  [RBascis.md](./RBasics.md)),
+say named `get-state-fatality(stateName, display)`, to return the monthly
+fatalites of at state `stateName` and if `display=TRUE` also to plot the
+fatalities by months. 
+
+
