@@ -1,0 +1,222 @@
+---
+title: "Week 3: Use R as GIS"
+output: github_document
+---
+
+```{r global_options, results='asis', warning=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',  warning=FALSE, message=FALSE)
+```
+
+```{r load, echo=T, eval=T}
+rm(list=ls())
+x <- c("sp", "rgdal", "rgeos", "maptools", "classInt", "RColorBrewer", "GISTools", "maps", "raster", 'ggmap')
+install.packages(x) # warning: this may take a number of minutes
+lapply(x, library, character.only = TRUE) #load the required packages
+```
+
+# Spatial Objects
+
+|       |  Without attributes | With attributes |
+| ----- | ------------------  | --------------  |
+|Points |  SpatialPoints      | SpatialPointsDataFrame|
+|Lines |  SpatialLines      | SpatialLinesDataFrame|
+|Polygons |  SpatialPolygons      | SpatialPolygonsDataFrame|
+|Raster |  SpatialGrid      | SpatialGridDataFrame|
+|Raster |  SpatialPixels      | SpatialPixelsDataFrame|
+
+```{r load_library, echo=T, eval=T}
+LubbockBlock<-readShapePoly("Data/LubbockBlockNew.shp") #read polygon shapefile
+class(LubbockBlock)
+HouseLocation<-read.csv("Data/HouseLatLon.csv") #read GPS data
+class(HouseLocation)
+coordinates(HouseLocation)<-c('Lon', 'Lat')
+class(HouseLocation)
+cropland<-raster("Data/Lubbock_CDL_2013_USDA.tif")
+class(cropland)
+
+tmin <- getData("worldclim", var = "tmin", res = 10)  # this will download 
+class(tmin)
+```
+
+
+```{r load_library1, echo=T, eval=T}
+LubbockBlock<-readOGR("./Data", "LubbockBlockNew") #read polygon shapefile
+class(LubbockBlock)
+```
+
+
+# Mapping with R
+
+## Basic Mapping
+
+```{r mapping, echo=T, eval=T}
+LubbockBlock<-readShapePoly("Data/LubbockBlockNew.shp") #read polygon shapefile
+plot(LubbockBlock,axes=TRUE, col=alpha("gray70", 0.6)) #plot Lubbock block shapefile
+#add title, scalebar, north arrow, and legend
+HouseLocation<-read.csv("Data/HouseLatLon.csv") #read GPS data
+price<-HouseLocation$TotalPrice
+nclr<-5
+priceclr<-brewer.pal(nclr, "Reds")
+class<-classIntervals(price, nclr, style="quantile")
+clocode<-findColours(class, priceclr)
+
+points(HouseLocation$Lon, HouseLocation$Lat, pch=19, col=clocode, cex=0.5) #add houses on top of Lubbock block shapefile
+title(main="Houses on Sale in Lubbock, 2014") 
+
+legend(-101.95, 33.65, legend=names(attr(clocode, "table")), fill =attr(clocode, "palette"), cex=0.5, bty="n")
+map.scale(x=-101.85, y=33.49, ratio=F)
+north.arrow(xb=-101.95, yb=33.65, len=0.005, lab="N")
+
+#plot raster
+plot(cropland)
+#plot raster stack
+tmin <- getData("worldclim", var = "tmin", res = 10)  # this will download 
+plot(tmin)
+```
+
+## Mapping with static Google Maps
+
+```{R mapping2, echo=T, eval=T}
+library(RgoogleMaps)
+lubbock=geocode('lubbock')
+
+newmap <- GetMap(center = c(lubbock$lat, lubbock$lon), zoom = 12, destfile = "newmap.png", maptype = "satellite") 
+
+PlotOnStaticMap(newmap, lat=HouseLocation$Lat, lon=HouseLocation$Lon, col='red')
+lubbock<-SpatialPolygons(LubbockBlock@polygons, proj4string=CRS("+init=EPSG:4326"))
+PlotPolysOnStaticMap(newmap, lubbock, col=alpha('blue', 0.2))
+```
+
+## Mapping with dynamic Google Maps
+
+```{R mapping3, echo=T, eval=T}
+library(plotGoogleMaps)
+
+data(meuse)
+coordinates(meuse)=~x+y
+proj4string(meuse) = CRS('+init=epsg:28992')
+plotGoogleMaps(meuse, filename='meuse')
+
+HouseLocation<-read.csv("Data/HouseLatLon.csv") #read GPS data
+coordinates(HouseLocation)<-c('Lon', 'Lat')
+proj4string(HouseLocation)=CRS('+init=EPSG:4326')
+plotGoogleMaps(HouseLocation, filename='house.html')
+
+ic = iconlabels(meuse$zinc, height=12)
+plotGoogleMaps(meuse, iconMarker=ic, mapTypeId='ROADMAP', filename='meuse2.html')
+
+#plot raster
+data(meuse.grid)
+coordinates(meuse.grid)<-c('x', 'y')
+meuse.grid<-as(meuse.grid, 'SpatialPixelsDataFrame')
+proj4string(meuse.grid) <- CRS('+init=epsg:28992')
+mapMeuseCl<- plotGoogleMaps(meuse.grid,zcol= 'dist',at=seq(0,0.9,0.1),colPalette= brewer.pal(9,"Reds")) 
+
+#plot polygons
+proj4string(LubbockBlock)=CRS("+init=epsg:4326")
+m<-plotGoogleMaps(LubbockBlock,zcol="Pop2010",filename= ' MyMap6.htm' , mapTypeId= ' TERRAIN ' ,colPalette= brewer.pal(7,"Reds"), strokeColor="white")
+
+#plot line
+meuse.grid<-as(meuse.grid, 'SpatialPixelsDataFrame')
+im<-as.image.SpatialGridDataFrame(meuse.grid[ 'dist' ]) 
+cl<-ContourLines2SLDF(contourLines(im))
+proj4string(cl) <- CRS( '+init=epsg:28992')
+mapMeuseCl<- plotGoogleMaps(cl,zcol= 'level' ,strokeWeight=1:9, filename= 'myMap5.htm',mapTypeId= 'ROADMAP') 
+```
+
+## Changing map projections
+
+```{r projection, eval=T }
+
+#project a vector 
+
+boudary=readShapePoly('Data/boundary');
+proj4string(boudary) <-CRS("+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0")
+proj4string(boudary)
+boudaryProj<-spTransform(boudary, CRS("+init=epsg:3857"))
+proj4string(boudaryProj)
+
+
+#project a raster
+proj4string(cropland)
+plot(cropland)
+aea <- CRS("+init=ESRI:102003")   #Albert equal area
+projCropland=projectRaster(cropland, crs=aea)
+plot(projCropland)
+```
+
+# Spatial analysis with R
+
+
+## vector analysis (overlay)
+
+```{r vector, echo=T, eval=T }
+#project a vector 
+
+# Datasets
+#  * CSV table of (fictionalized) brown bear sightings in Alaska, each
+#    containing an arbitrary ID and spatial location specified as a
+#    lat-lon coordinate pair. 
+#  * Polygon shapefile containing the boundaries of US National Parks
+#    greater than 100,000 acres in size. 
+
+bears <- read.csv("Data/bear-sightings.csv")
+coordinates(bears) <- c("longitude", "latitude")
+
+# read in National Parks polygons
+parks <- readOGR("Data", "10m_us_parks_area")
+
+# tell R that bear coordinates are in the same lat/lon reference system as the parks data 
+proj4string(bears) <- proj4string(parks)
+
+# combine is.na() with over() to do the containment test; note that we
+# need to "demote" parks to a SpatialPolygons object first
+inside.park <- !is.na(over(bears, as(parks, "SpatialPolygons")))
+
+# calculate what fraction of sightings were inside a park
+mean(inside.park)
+## [1] 0.1720648
+
+# determine which park contains each sighting and store the park name as an attribute of the bears data
+bears$park <- over(bears, parks)$Unit_Name
+
+# draw a map big enough to encompass all points, then add in park boundaries superimposed upon a map of the United States
+plot(bears)
+map("world", region="usa", add=TRUE)
+plot(parks, border="green", add=TRUE)
+legend("topright", cex=0.85, c("Bear in park", "Bear not in park", "Park boundary"), pch=c(16, 1, NA), lty=c(NA, NA, 1), col=c("red", "grey", "green"), bty="n")
+title(expression(paste(italic("Ursus arctos"), " sightings with respect to national parks"))) 
+
+# plot bear points with separate colors inside and outside of parks
+points(bears[!inside.park, ], pch=1, col="gray")
+points(bears[inside.park, ], pch=16, col="red")
+
+# write the augmented bears dataset to CSV
+write.csv(bears, "bears-by-park.csv", row.names=FALSE)
+
+# ...or create a shapefile from the points
+writeOGR(bears, ".", "bears-by-park", driver="ESRI Shapefile")
+
+```
+## Raster analysis
+
+```{r raster, eval=T, echo=T}
+
+elevation <- getData("alt", country = "ESP")
+slope <- terrain(elevation, opt = "slope")
+aspect <- terrain(elevation, opt = "aspect")
+hill <- hillShade(slope, aspect, 40, 270)
+plot(hill, col = grey(0:100/100), legend = FALSE, main = "Spain")
+plot(elevation, col = rainbow(25, alpha = 0.35), add = TRUE)
+
+#contours
+
+contour(elevation)
+
+#crop raster
+plot(hill, col = grey(0:100/100), legend = FALSE, main = "Spain")
+plot(elevation, col = rainbow(25, alpha = 0.35), add = TRUE)
+extent=drawExtent()
+cropElev <- crop(elevation, extent)
+plot(cropElev)
+```
