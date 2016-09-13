@@ -1,0 +1,21 @@
+--
+title: "Homework: Use R as GIS"
+output: github_document
+---
+Based on the accident dataset ('accident.dbf') we used last week, please
+write R scripts to finish the following two tasks:
+
+1. Map the locations of accidents based on the lat/long and use the United
+States state boundary as the background. Please note the `accident.dbf` can
+be loaded by the following codes, and there are invalid values for lat/long
+column that you probably need to clean up before use.  
+
+```{r load, evaf=T, echo=T, results='hide'}
+library(foreign)
+accident=read.dbf('Data/accident.dbf')
+```
+
+2. In the folder 'Data/Texas' contains the boundary of Texas counties.
+   Using the `accident.dbf' data, please count the number of accidents for
+   each county and make a county map based on the value of count you
+   calculated. 
