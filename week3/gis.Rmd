@@ -1,4 +1,4 @@
----
+f--
 title: "Week 3: Use R as GIS"
 output: github_document
 ---
@@ -8,7 +8,7 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',  warning=FAL
 ```
 
 ```{r load, echo=T, eval=T}
-rm(list=ls())
+#rm(list=ls())
 x <- c("sp", "rgdal", "rgeos", "maptools", "classInt", "RColorBrewer", "GISTools", "maps", "raster", 'ggmap')
 install.packages(x) # warning: this may take a number of minutes
 lapply(x, library, character.only = TRUE) #load the required packages
@@ -89,13 +89,13 @@ PlotPolysOnStaticMap(newmap, lubbock, col=alpha('blue', 0.2))
 
 ## Mapping with dynamic Google Maps
 
-```{R mapping3, echo=T, eval=T}
+```{R mapping3, echo=T, eval=F}
 library(plotGoogleMaps)
 
 data(meuse)
 coordinates(meuse)=~x+y
 proj4string(meuse) = CRS('+init=epsg:28992')
-plotGoogleMaps(meuse, filename='meuse')
+plotGoogleMaps(meuse, filename='meuse.html')
 
 HouseLocation<-read.csv("Data/HouseLatLon.csv") #read GPS data
 coordinates(HouseLocation)<-c('Lon', 'Lat')
@@ -114,7 +114,7 @@ mapMeuseCl<- plotGoogleMaps(meuse.grid,zcol= 'dist',at=seq(0,0.9,0.1),colPalette
 
 #plot polygons
 proj4string(LubbockBlock)=CRS("+init=epsg:4326")
-m<-plotGoogleMaps(LubbockBlock,zcol="Pop2010",filename= ' MyMap6.htm' , mapTypeId= ' TERRAIN ' ,colPalette= brewer.pal(7,"Reds"), strokeColor="white")
+m<-plotGoogleMaps(LubbockBlock,zcol="Pop2010",filename= 'MyMap6.htm' , mapTypeId= ' TERRAIN ' ,colPalette= brewer.pal(7,"Reds"), strokeColor="white")
 
 #plot line
 meuse.grid<-as(meuse.grid, 'SpatialPixelsDataFrame')
@@ -196,12 +196,11 @@ write.csv(bears, "bears-by-park.csv", row.names=FALSE)
 
 # ...or create a shapefile from the points
 writeOGR(bears, ".", "bears-by-park", driver="ESRI Shapefile")
-
 ```
+
 ## Raster analysis
 
 ```{r raster, eval=T, echo=T}
-
 elevation <- getData("alt", country = "ESP")
 slope <- terrain(elevation, opt = "slope")
 aspect <- terrain(elevation, opt = "aspect")
@@ -212,7 +211,9 @@ plot(elevation, col = rainbow(25, alpha = 0.35), add = TRUE)
 #contours
 
 contour(elevation)
+```
 
+```{r raster2, eval=F, echo=T}
 #crop raster
 plot(hill, col = grey(0:100/100), legend = FALSE, main = "Spain")
 plot(elevation, col = rainbow(25, alpha = 0.35), add = TRUE)
