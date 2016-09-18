@@ -64,7 +64,7 @@ points(HouseLocation$Lon, HouseLocation$Lat, pch=19, col=clocode, cex=0.5) #add 
 title(main="Houses on Sale in Lubbock, 2014") 
 
 legend(-101.95, 33.65, legend=names(attr(clocode, "table")), fill =attr(clocode, "palette"), cex=0.5, bty="n")
-map.scale(x=-101.85, y=33.49, ratio=F)
+map.scale(x=-101.85, y=33.49,0.001,"Miles",4,0.5,sfcol='red')
 north.arrow(xb=-101.95, yb=33.65, len=0.005, lab="N")
 
 #plot raster
@@ -80,7 +80,7 @@ plot(tmin)
 library(RgoogleMaps)
 lubbock=geocode('lubbock')
 
-newmap <- GetMap(center = c(lubbock$lat, lubbock$lon), zoom = 12, destfile = "newmap.png", maptype = "satellite") 
+newmap <- GetMap(center = c(lubbock$lat, lubbock$lon), zoom = 12, destfile = "newmap.png", maptype = "roadmap") 
 
 PlotOnStaticMap(newmap, lat=HouseLocation$Lat, lon=HouseLocation$Lon, col='red')
 lubbock<-SpatialPolygons(LubbockBlock@polygons, proj4string=CRS("+init=EPSG:4326"))
@@ -110,7 +110,7 @@ data(meuse.grid)
 coordinates(meuse.grid)<-c('x', 'y')
 meuse.grid<-as(meuse.grid, 'SpatialPixelsDataFrame')
 proj4string(meuse.grid) <- CRS('+init=epsg:28992')
-mapMeuseCl<- plotGoogleMaps(meuse.grid,zcol= 'dist',at=seq(0,0.9,0.1),colPalette= brewer.pal(9,"Reds")) 
+mapMeuseCl<- plotGoogleMaps(meuse.grid,zcol= 'dist',at=seq(0,0.9,0.1),colPalette= brewer.pal(9,"Reds"), filename='meuse3.html') 
 
 #plot polygons
 proj4string(LubbockBlock)=CRS("+init=epsg:4326")
