@@ -168,7 +168,7 @@ Generate a set of unconditional simulation based on the specified variogram
 # Generate a set of unconditional simulation based on the specified variogram
 xy <- expand.grid(1:100, 1:100)
 names(xy) <- c('x','y')
-g.dummy <- gstat(formula=z~1, locations=~x+y, dummy=T, beta=1, model=vgm(psill=0.025, range=5, model='Exp'), nmax=20) 
+g.dummy <- gstat(formula=z~1, locations=~x+y, dummy=T, beta=1, model=vgm(psill=0.025, range=5, model='Exp', nugget=0.0001), nmax=21) 
 yy <- predict(g.dummy, newdata=xy, nsim=4)
 coordinates(yy)=~x+y
 gridded(yy) =TRUE

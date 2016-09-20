@@ -1,0 +1,39 @@
+---
+title: "Week 4: Homework"
+output: github_document
+---
+
+```{r global_options, echo=FALSE, results='asis'}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',  warning=FALSE, message=FALSE)
+rm(list=ls())
+```
+# Question 1
+
+On a 100x100 raster grid, please generate a set of (10 per set)
+unconditional simulation maps for each of the following sets of variogram
+parameters:
+
+1. sill= 0.5, range = 5, nugget = 0.0001, model = Exponential 
+2. sill= 0.5, range = 5, nugget = 0.0001, model = Gaussian 
+3. sill= 0.5, range = 50, nugget = 0.0001, model = Exponential 
+
+Based on what you generated, please describe the major visual differences
+of the simulated results and explain why. 
+
+# Question 2
+
+The `oa.shp` in the `Data` folder is a set of wells containing information
+about water level (`WTE`) in feet. Using the `WTE' data for the year of
+2013 (field `WTE2013`), please finish the following questions:
+
+1. please interpolate the wells into a continuous surface of water table
+   level using simple kriging method and display the estiamted surface.
+   Note that `0` in `WTE2013` means no values for those wells.  
+
+2. please also output the map of variance associated with the estimated
+   surface and explain what the variance maps tell us. 
+
+3. please run a leave-one-out cross-validation, and calcualte the RMSE
+   (root-mean-square deviation) of the estimation. 
+
+
