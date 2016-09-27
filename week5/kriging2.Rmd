@@ -1,0 +1,202 @@
+---
+title: "Week 5: Geostatistics II"
+output: github_document
+---
+
+```{r global_options, eval=T, echo=F,results='hide'}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',  warning=FALSE, message=FALSE)
+rm(list=ls())
+library(sp)
+library(gstat)
+library(RColorBrewer)
+library(geoR)
+```
+
+# More Notes on Assumption of Kriging
+
+# Stationarity
+
+Consider a spatial process $z(s)$ with a mean $m(s)$ and variance $\sigma(s)$
+exists $\forall s\in\mathcal{D}$. 
+
+1. The process is `strictly stationary` or `strongly stationary` if, for
+   any given $n\ge 1$, any set set of $n$ sites and any $h\in
+   \mathcal{R}^d$, the distribution of $z(s_i), \ldots, z(s_n)$ is the same
+   as $z(s_i+h), \ldots, z(s_n+h)$
+
+2. A less restrictive assumption is `weak stationarity` or `second-order stationarity`, which is to assume $m(s)\equiv \mu$ and $cov[z(s_i),
+   z(s_i+h)]=C(h)$ for any $h\in \mathcal{R}^{d}$ s.t. both $s_i$ and
+   $s_i+h$ are within $\mathcal{D}$. $C(h)$ is `covariogram`.
+
+	+ $cov[z(s_i), z(s_i+h)]= E{[z(s_i)-\mu][z(s_i+h)-\mu]}=E[z(s_i)z(s_i+h)]-\mu^2=C(h)$ 
+	+ $\sigma(z(s_i))=E[z(s_i)-\mu]^2=E[z(s_i)^2]-\mu^2=C(0)$
+	+ $\rho(h)=\frac{C(h)}{\sigma(z(s_i)\sigma{z(s_i+h)}}$ is
+	  `correlogram`
+
+3. The `second-order stationarity` assumes the existence of covariance.
+   For cases where covariance and variance do not exist, we assume the
+   stationarity of the difference. 
+  
+	+ $E[z(s)]=\mu, \forall s$
+	+ $\sigma[z(s_i+h)-z(s_i)]=E[z(s_i+h)-z(s_i)]^2=2\gamma(h)$
+	+ $\hat{\gamma(h)}= \frac{1}{2N(h)}\sum_{(s_i, s_j)\in N(h)}^{N(h)}[z(s_i)-z(s_j)]^2$
+	+ $2\gamma(h)$ is called `variogram` and $2\gamma(h)$ is therefore
+	  `semivariogram`
+	+ `intrinsic stationarity`
+
+
+## Variogram 
+
+
+## Kriging
+
+
+```{r cloud1, echo=T, eval=T, results='hide'}
+data(meuse)
+meuse=cbind(meuse, log(meuse$lead))
+# convert it to a geodata object that geoR requires. 
+meuse=as.geodata(meuse,coords.col=1:2, data.col=15, covar.col=8)
+# generate variogram cloud. geoR provides two different ways for the sample
+# variogram values, classical and modules. The classical one is the one we
+# talked about in the class, and the modules one is the 
+cloud1 <- variog(meuse, option = "cloud", estimation.type='classical')
+names(cloud1)
+head(cloud1$u, n=20)
+head(cloud1$v, n=20)
+plot(cloud1)
+```
+
+```{r cloud2, echo=T, eval=T, results='hide'}
+#box-plot of the cloud
+bin1 <- variog(meuse, breaks=seq(45, 2000, by = 100), estimation.type='classical',bin.cloud=T, max.distance=2000) 
+plot(bin1, bin.cloud=T)
+
+#variogram fitting
+
+##by eye
+variogram <- variog(meuse, breaks=seq(45, 4000, by = 100))
+plot(variogram)
+lines.variomodel(cov.model="sph", cov.pars=c(0.4,1000), nug=0.1, max.dist=4000, lty=2, col='red')
+
+#Fit the spherical variogram using the default option (check ?variofit manual).
+fit1 <- variofit(variogram, cov.model="sph", ini.cov.pars=c(0.4,1000), fix.nugget=FALSE, nugget=0.1)
+
+lines(fit1, lty=1)
+
+#Use Cressies weights:
+fit2 <- variofit(variogram, cov.model="sph", weights="cressie", ini.cov.pars=c(0.4,1000), fix.nugget=FALSE, nugget=0.1) 
+
+lines(fit2, lty=1, col="green")
+
+#Use equal weights (simply OLS):
+fit3 <- variofit(variogram, cov.model="sph", ini.cov.pars=c(0.4,1000), weights="equal", fix.nugget=FALSE, nugget=0.1)
+
+lines(fit3, lty=1, col="orange")
+
+#MML:
+ml <- likfit(meuse, cov.model="sph", ini.cov.pars=c(0.4,1000), fix.nugget=FALSE, nugget=0.1) 
+
+lines(ml, col="blue")
+
+#REML:
+rml <- likfit(meuse, cov.model="sph", ini.cov.pars=c(0.4,1000), fix.nugget=FALSE, nugget=0.1, lik.method = "RML" )
+
+lines(rml, col="purple")
+
+
+# 
+env.mc <- variog.mc.env(meuse, obj.var=variogram)
+env.model <- variog.model.env(meuse, obj.var=variogram, model=fit2)
+par(mfrow=c(1,2))
+plot(variogram, envelope=env.mc)
+plot(variogram, envelope=env.model)
+
+# profile likelihood
+prof <- proflik(ml, geodata = meuse, sill.val = seq(0.20, 1, l = 5), range.val = seq(800, 1200, l = 6), uni.only = FALSE )
+plot(prof)
+```
+
+# Simple Kriging and Ordinary Kriging
+
+```{r kriging, echo=T, eval=T, results='hide'}
+data(meuse.grid)
+predSites=cbind(meuse.grid$x, meuse.grid$y)
+OKpred=krige.conv(meuse, locations=predSites, krige=krige.control(type.krige='ok', obj.m=ml))
+
+OKresult=as.data.frame(cbind(OKpred$predict, OKpred$krige.var))
+coordinates(OKresult)=predSites
+gridded(OKresult)=TRUE
+
+# the constant mean is specified by beta
+mean(meuse$data)
+SKpred=krige.conv(meuse, locations=predSites, krige=krige.control(type.krige='sk', obj.m=ml, beta=6)) 
+SKresult=as.data.frame(cbind(SKpred$predict, SKpred$krige.var))
+coordinates(SKresult)=predSites
+gridded(SKresult)=TRUE
+
+p1=spplot ( OKresult, "V1")
+p2=spplot(OKresult,"V2")
+p3=spplot(SKresult,"V1")
+p4=spplot(SKresult,"V2")
+
+print(p1, position = c(0,.5,.5,1),more=T)
+print(p2, position = c(.5,.5,1,1),more = T)
+print(p3, position = c(0,0,.5,0.5),more=T)
+print(p4, position = c(.5,0,1,0.5))
+```
+
+# Regression Kriging
+
+```{r regressionkriging, echo=T, eval=T, results='hide'}
+RKpred=krige.conv(meuse, locations=predSites, krige=krige.control(type.krige='ok', obj.m=ml, trend.d=~dist, trend.l= ~meuse.grid$dist)) 
+RKresult=as.data.frame(cbind(RKpred$predict, RKpred$krige.var))
+coordinates(RKresult)=predSites
+gridded(RKresult)=TRUE
+
+p5=spplot ( RKresult, "V1")
+p6=spplot(RKresult,"V2")
+
+print(p5, position = c(0,.5,.5,1),more=T)
+print(p6, position = c(.5,.5,1,1))
+```
+
+# Bayes Kriging
+
+```{r Bayeskriging, echo=T, eval=T, results='hide'}
+
+xrange=range(meuse$coords[,1])
+yrange=range(meuse$coords[,2])
+x=seq(xrange[1], xrange[2], length=10)
+y=seq(yrange[1], yrange[2], length=10)
+predSites=expand.grid(x,y)
+
+model.spec <- model.control(trend.d=~dist, trend.l=~meuse.grid$dist, cov.model="matern", kappa=0.5, lambda=1) 
+
+prior.spec <- prior.control(beta.prior="flat",sigmasq.prior="reciprocal",tausq.rel.prior="uniform",tausq.rel.discrete=seq(from=0.0,to=1.0,by=0.01))
+
+output.spec <- output.control(quantile=c(0.50,0.025,0.975), n.post=100)
+
+bayes1 <- krige.bayes(meuse, locations=predSites, borders=NULL, model=model.spec, prior=prior.spec, output=output.spec)
+
+out <- bayes1$posterior
+out <- out$sample
+beta0.qnt <- quantile(out$beta0, c(0.50,0.025,0.975))
+beta1.qnt <- quantile(out$beta1, c(0.50,0.025,0.975))
+phi.qnt <- quantile(out$phi, c(0.50,0.025,0.975))
+sigmasq.qnt <- quantile(out$sigmasq, c(0.50,0.025,0.975))
+tausq.rel.qnt <- quantile(out$tausq.rel, c(0.50,0.025,0.975))
+tausq <- (out$tausq.rel)*(out$sigmasq) 
+tausq.qnt <- quantile(tausq, c(0.50,0.025,0.975))
+
+samples.lead<- cbind(out$beta0,out$beta1,out$phi,out$sigmasq,tausq)
+summary.lead <- rbind(beta0.qnt,beta1.qnt,phi.qnt,sigmasq.qnt,tausq.qnt)
+
+out2 <- bayes1$predictive
+predictive.mean <- out2$mean.simulations
+predictive.variance <- out2$variance.simulations
+predictive.sd <- sqrt(predictive.variance)
+predictive.quantiles <- out2$quantiles.simulations
+
+summary.predictive <- cbind(predictive.mean,predictive.sd,predictive.quantiles) 
+```
+

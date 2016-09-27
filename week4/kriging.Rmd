@@ -3,14 +3,14 @@ title: "Week 4: Geostatistics I"
 output: github_document
 ---
 
-```{r global_options, echo=FALSE, results='asis'}
-knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',  warning=FALSE, message=FALSE)
-rm(list=ls())
-library(sp)
-library(gstat)
-library(RColorBrewer)
-library(plotGoogleMaps)
+```{r global_options, echo=FALSE, eval =T, results='asis'}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/', warning=FALSE, message=FALSE) 
+rm(list=ls()) 
+library(sp) 
+library(gstat) 
+library(RColorBrewer) 
 ```
+
 # Data
 
 The `meuse` data set contains the measurements of the concentration of
@@ -23,7 +23,8 @@ point. You can see the maps of the study area.
 ```{r meuse, echo=T, eval=T}
 data(meuse)
 coordinates(meuse)=~x+y
-proj4string(meuse) = CRS('+init=epsg:28992')
+#proj4string(meuse) = CRS('+init=epsg:28992')
+
 plotGoogleMaps(meuse)
 ```
 
@@ -54,7 +55,7 @@ zinc.idw = idw(zinc~1, meuse, meuse.grid)
 #image(meuse.grid['dist'], col=rev(brewer.pal(9, 'Reds')))
 
 str(zinc.idw)
-plot(zinc.idw[,1], main='zinc, inverse distance weighted estimation')
+spplot(zinc.idw[,1], main='zinc, inverse distance weighted estimation')
 ```
 
 # Kriging
@@ -77,7 +78,7 @@ plot(meuse.grid['dist'], col=rev(brewer.pal(9, 'Reds')), main='distance to river
 ##Variogram
 
 ```{r variogram, echo=T, eval=T}
-lzn.vgm = variogram(log(zinc)~1, meuse)
+lzn.vgm = variogram(log(meuse$zinc)~1, meuse)
 lzn.vgm
 plot(lzn.vgm)
 
@@ -86,7 +87,7 @@ lzn.vgm.map = variogram(log(zinc)~1, meuse, map=TRUE, cutoff=1500, width=100)
 plot(lzn.vgm.map)
 
 
-lzn.fit = fit.variogram(lzn.vgm, model = vgm(1, "Sph", 900, 1))
+lzn.fit = fit.variogram(lzn.vgm, model = vgm(1, "Exp", 900, 1))
 lzn.fit
 plot(lzn.vgm, lzn.fit)
 
@@ -168,7 +169,7 @@ Generate a set of unconditional simulation based on the specified variogram
 # Generate a set of unconditional simulation based on the specified variogram
 xy <- expand.grid(1:100, 1:100)
 names(xy) <- c('x','y')
-g.dummy <- gstat(formula=z~1, locations=~x+y, dummy=T, beta=1, model=vgm(psill=0.025, range=5, model='Exp', nugget=0.0001), nmax=21) 
+g.dummy <- gstat(formula=z~1, locations=~x+y, dummy=T, beta=1, model=vgm(psill=0.025, range=5, model='Gau', nugget=10.0001), nmax=21) 
 yy <- predict(g.dummy, newdata=xy, nsim=4)
 coordinates(yy)=~x+y
 gridded(yy) =TRUE
