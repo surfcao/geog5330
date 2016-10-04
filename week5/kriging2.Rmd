@@ -14,32 +14,33 @@ library(geoR)
 
 # More Notes on Assumption of Kriging
 
-# Stationarity
+## Stationarity
 
-Consider a spatial process $z(s)$ with a mean $m(s)$ and variance $\sigma(s)$
+Consider a spatial process $Z(s)$ with a mean $m(s)$ and variance $\sigma^2(s)$
 exists $\forall s\in\mathcal{D}$. 
 
 1. The process is `strictly stationary` or `strongly stationary` if, for
    any given $n\ge 1$, any set set of $n$ sites and any $h\in
-   \mathcal{R}^d$, the distribution of $z(s_i), \ldots, z(s_n)$ is the same
-   as $z(s_i+h), \ldots, z(s_n+h)$
+   \mathcal{R}^d$, the distribution of $Z(s_i), \ldots, Z(s_n)$ is the same
+   as $Z(s_i+h), \ldots, Z(s_n+h)$
 
-2. A less restrictive assumption is `weak stationarity` or `second-order stationarity`, which is to assume $m(s)\equiv \mu$ and $cov[z(s_i),
-   z(s_i+h)]=C(h)$ for any $h\in \mathcal{R}^{d}$ s.t. both $s_i$ and
+2. A less restrictive assumption is `weak stationarity` or `second-order
+   stationarity`, which is to assume $m(s)\equiv \mu$ and $cov[Z(s_i),
+   Z(s_i+h)]=C(h)$ for any $h\in \mathcal{R}^{d}$ s.t. both $s_i$ and
    $s_i+h$ are within $\mathcal{D}$. $C(h)$ is `covariogram`.
 
-	+ $cov[z(s_i), z(s_i+h)]= E{[z(s_i)-\mu][z(s_i+h)-\mu]}=E[z(s_i)z(s_i+h)]-\mu^2=C(h)$ 
-	+ $\sigma(z(s_i))=E[z(s_i)-\mu]^2=E[z(s_i)^2]-\mu^2=C(0)$
-	+ $\rho(h)=\frac{C(h)}{\sigma(z(s_i))\sigma(z(s_i+h))}$ is
+	+ $cov[Z(s_i), Z(s_i+h)]= E{[Z(s_i)-\mu][Z(s_i+h)-\mu]}=E[Z(s_i)Z(s_i+h)]-\mu^2=C(h)$ 
+	+ $\sigma^2(Z(s_i))=E[Z(s_i)-\mu]^2=E[Z(s_i)^2]-\mu^2=C(0)$
+	+ $\rho(h)=\frac{C(h)}{\sigma(Z(s_i))\sigma(Z(s_i+h))}$ is
 	  `correlogram`
 
 3. The `second-order stationarity` assumes the existence of covariance.
    For cases where covariance and variance do not exist, we assume the
    stationarity of the difference. 
   
-	+ $E[z(s)]=\mu, \forall s$
-	+ $\sigma[z(s_i+h)-z(s_i)]=E[z(s_i+h)-z(s_i)]^2=2\gamma(h)$
-	+ $\hat{\gamma(h)}= \frac{1}{2N(h)}\sum_{(s_i, s_j)\in N(h)}^{N(h)}[z(s_i)-z(s_j)]^2$
+	+ $E[Z(s)]=\mu, \forall s$
+	+ $\sigma^2[Z(s_i+h)-Z(s_i)]=E[Z(s_i+h)-Z(s_i)]^2=2\gamma(h)$
+	+ $\hat{\gamma(h)}= \frac{1}{2N(h)}\sum_{(s_i, s_j)\in N(h)}^{N(h)}[Z(s_i)-Z(s_j)]^2$
 	+ $2\gamma(h)$ is called `variogram` and $2\gamma(h)$ is therefore
 	  `semivariogram`
 	+ `intrinsic stationarity`
@@ -47,9 +48,68 @@ exists $\forall s\in\mathcal{D}$.
 
 ## Variogram 
 
+Not every function could be used as a variogram. Suppose there are stationary random
+variables $Z(s_1), Z(s_2), \dots, Z(s_n)$ with expectation $\mu$ and
+covariance $C(h)$. Let $Y$ be the linear combination of these variables.
+$Y=\sum_{i=1}^{n}\omega_iZ(s_i)$, which is also a random variable itself
+and must have nonnegative variance. 
+
+$$\sigma^2(Y)=\sum_{i=1}^{n}\sum_{j=1}^{n}\omega_i\omega_jC(s_i-s_j)\ge 0$$
+
+Therefore legal covariance functions much ensure that the variance of $Y$
+is always non-negative. This type of functions is often referred to as
+`non-negative definite`. If $\sigma(Y) \ge 0$, it is called `positive
+definite`.
+
+Since for variogram $\gamma(h) = C(0)-C(h)$. The variance of $Y$,
+$\sigma^2(Y)$, can be rewritten using $\gamma(h)$:
+
+$$\sigma^2(Y) = C(0)\sum_{i=1}^{n}\sum_{j=1}^{n}\omega_i\omega_j - \sum_{i=1}^{n}\sum_{j=1}^{n}\omega_i\omega_j\gamma(s_i-s_j)\ge0$$
+
+In case of $\sum_{i=1}^{n}\sum_{j=1}^{n}\omega_i\omega_j =0$:
+
+$$\sum_{i=1}^{n}\sum_{j=1}^{n}\omega_i\omega_j\gamma(s_i-s_j)\le0$$ 
+
+Therefore, legal variogram function must be `negative definite`.
+
+The common examples of the legal variogram or covariogram functions include
+`Spherical`, `Exponential`, `Gaussian`, `Matern` that we have used for the
+last week.
+
 
 ## Kriging
 
+Spatial prediction are commonly represented as:
+
+$$Y(s) = m(s) + Z(s) + \epsilon$$,
+
+where $Y(s)$ represent the primary variable of study at location $s$,
+$m(s)=\beta X(s)$ is the mean or trend component (or trend) that could be
+modeled through covariate $X(s)$, $Z(s)$ is the spatial effect that are
+often assumed as Gaussian distributed specified by covariance functions
+$C(h; \phi, \sigma^2)$, $\epsilon$ is the random noises (nugget effect)
+specified by parameter $\tau^2$
+
+
+Different specifications of the trend component $m(s)$ leads to different
+types of kriging methods. 
+
++ Simple kriging: $m(s)\equiv\mu$
++ Ordinary kriging: $m(s)$ is constant but unknown
++ Regression kriging: $m(s)$ is modeled through covariates $X(s)$
+     - Universal kriging
+     - Kriging with external drift
+
+Under the assumption of Gaussian distributed variables, kriging leads to
+the unbiased linear estimation with minimum variance or best linear
+unbiased estimation (BLUE). 
+
+If the measurements cannot satisfy the Gaussian assumption, transformation
+usually needs to be performed first (e.g., log transform) or Bayesian
+hierarchical model can be used. 
+
+
+# Excises: Model-based Geostatistics
 
 ```{r cloud1, echo=T, eval=T, results='hide'}
 data(meuse)
@@ -112,8 +172,8 @@ plot(variogram, envelope=env.mc)
 plot(variogram, envelope=env.model)
 
 # profile likelihood
-prof <- proflik(ml, geodata = meuse, sill.val = seq(0.20, 1, l = 5), range.val = seq(800, 1200, l = 6), uni.only = FALSE )
-plot(prof)
+#prof <- proflik(ml, geodata = meuse, sill.val = seq(0.20, 1, l = 5), range.val = seq(800, 1200, l = 6), uni.only = FALSE )
+#plot(prof)
 ```
 
 # Simple Kriging and Ordinary Kriging
@@ -162,7 +222,11 @@ print(p6, position = c(.5,.5,1,1))
 
 # Bayes Kriging
 
-```{r Bayeskriging, echo=T, eval=T, results='hide'}
+```{r Bayeskriging, echo=T, eval=F, results='hide'}
+
+#Warining: the following codes are very computationally demanding. In the
+#interest of time,  I made the specification of the model unrealistically
+# simple.
 
 xrange=range(meuse$coords[,1])
 yrange=range(meuse$coords[,2])
@@ -170,11 +234,13 @@ x=seq(xrange[1], xrange[2], length=10)
 y=seq(yrange[1], yrange[2], length=10)
 predSites=expand.grid(x,y)
 
-model.spec <- model.control(trend.d=~dist, trend.l=~meuse.grid$dist, cov.model="matern", kappa=0.5, lambda=1) 
+#model.spec <- model.control(trend.d=~dist, trend.l=~meuse.grid$dist, cov.model="matern", kappa=0.5, lambda=1) 
 
-prior.spec <- prior.control(beta.prior="flat",sigmasq.prior="reciprocal",tausq.rel.prior="uniform",tausq.rel.discrete=seq(from=0.0,to=1.0,by=0.01))
+model.spec <- model.control(cov.model="matern", kappa=0.5, lambda=1) 
 
-output.spec <- output.control(quantile=c(0.50,0.025,0.975), n.post=100)
+prior.spec <- prior.control(beta.prior="flat",sigmasq.prior="reciprocal",tausq.rel.prior="uniform",tausq.rel.discrete=seq(from=0.0,to=1.0,by=0.1))
+
+output.spec <- output.control(quantile=c(0.50,0.025,0.975), n.post=100, n.pred=100)
 
 bayes1 <- krige.bayes(meuse, locations=predSites, borders=NULL, model=model.spec, prior=prior.spec, output=output.spec)
 
@@ -196,6 +262,7 @@ predictive.mean <- out2$mean.simulations
 predictive.variance <- out2$variance.simulations
 predictive.sd <- sqrt(predictive.variance)
 predictive.quantiles <- out2$quantiles.simulations
+
 
 summary.predictive <- cbind(predictive.mean,predictive.sd,predictive.quantiles) 
 ```
