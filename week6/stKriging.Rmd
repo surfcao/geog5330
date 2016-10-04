@@ -14,7 +14,7 @@ library(gstat)
 library(rgdal)
 
 # load data from package gstat
-data(air2005, package = "gstat")
+data(DE_RB_2005, package = "gstat")
 air2005=air2005
 
 set.seed(123)
