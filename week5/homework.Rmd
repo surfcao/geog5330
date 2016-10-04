@@ -1,0 +1,131 @@
+--
+title: "Homework 5: Writing a Kriging function"
+output: github_document
+---
+```{r global_options, echo=FALSE, results='asis'}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',  warning=FALSE, message=FALSE)
+rm(list=ls())
+```
+
+The following simple table contains measurements at $10$ locations $z(s_i),
+i = 1,\dots 10$, and we need to make estimation of a target location
+($z(s_11)$, red point) using kriging.
+
+```{r hw, eval=T, echo=F}
+
+#oa<-readShapePoints('Data/oa.shp')
+#oa<-subset(oa, oa$WTE2013>0)
+#inc <- sample(1:nrow(oa), 10)
+#x <- oa@coords[inc,1]
+#y <- oa@coords[inc,2]
+#value <- oa$WTE2013[inc]
+#obs<-cbind(x,y,value)
+#rownames(obs)=1:10
+#write.csv(obs, 'data.csv', row.names=F)
+
+obs=read.csv('data.csv')
+xtarget=4540000
+ytarget=20640000
+kable(obs)
+plot(obs$x,obs$y)
+points(xtarget,ytarget, col='red', pch='*', cex=3)
+```
+
+Assume that we know the mean of the observations is $0$. As mentioned in
+the class, simple kriging can be used to make this estimation. We have
+learned that, with a specification of covariogram/variogram $\gamma(h)$,
+the kriging weights can be obtained by $\omega=\sum_{dd}^{-1}\sigma_{dt}$,
+where the $\omega$ is the vector of kriging weights, $\sum_{dd}$ is the
+covariance matrix of the observation specified by $\gamma(h)$, and
+$\sigma_{dt}$ indicates the covariance vector between the targeted location
+and the observations. The kriging estimation can then been given as
+$\hat{z}(s_{11})=\sum_{i=1}^{10}\omega_{i}z(s_i)$ and the associated
+variance is $\hat{\sigma}(s_{11})=\sigma(0) -
+\sum_{i=1}^{10}\omega_{i}\sigma(|s_{11}-s_{i}|)$. With these, please finish
+the following two questions. 
+
+# Question 1
+
+The exponential covariogram function $\gamma(h)$ is given in the following
+R block.
+
+```{r hw2, eval=T, echo=T}
+
+# exponential covariogram
+expVariogram<-function(distance){
+    nugget=0; sill=2000; range=20000
+    return (nugget+sill*exp(-3*distance/range))
+}
+```
+
+With this covariogram, please finish the following `kriging` function. The
+input of this function are observed locations and values (`object'), and
+the location ('location')to be estimated. The expected return value of this
+function is kriging estimation at `location`.
+
+```{r hw3, eval=T, echo=T}
+
+#With the above exponential covariogram, please finish the following kriging function
+
+kriging<-function(object, location){
+	n=nrow(object)
+	x <- as.matrix(cbind(object$x, object$y))
+	# First, we calculate the distance matrix between observations. 
+	# Initialize distance matrix
+	x1 <- rep(rep(0,n),n)         
+	dist <- matrix(x1,nrow=n,ncol=n) 
+	for (i in 1:n){ 
+		for (j in 1:n){ 
+			dist[i,j]=sqrt((x[i,1]-x[j,1])^2+(x[i,2]-x[j,2])^2) 
+		} 
+	}
+	#######################################################
+	## Here, please add your code to convert the distance matrix to covariance
+	## matrix
+
+
+        ## 
+	######################################################
+
+
+	dist2= rep(0,n) # initialize observation to target distance 
+	for(i in 1:n){
+		dist2[i]=sqrt((x[i,1]-location[1])^2+(x[i,2]-location[2])^2)
+	}
+
+	#######################################################
+	## Here, please add your code to convert the distance vector between target
+	# and observations to the vector of covariance 
+
+        #
+	#######################################################
+
+	# The following code generate the kriging weighs for each observations. 
+	# function `solve(C)` to invert a matrix `C`, and function `%*%` to
+	# multiply two matrix
+
+	w <- solve(C) %*% c
+
+	#######################################################
+	# Here, according to the equation given previously in this document,
+	# please add your code to get the kriging estimation (say it is called zhat) and the associated
+	# variance based on the weight `w`
+
+	zhat <- 0 # Initilized as 0
+
+        #
+	#######################################################
+
+	return (zhat)
+}
+```
+
+# Question 2
+
+Using the `kriging` function, you completed in previous question, please
+make estimation at the $10$ observed locations and compare the difference
+between your estimation and the observations. What do you find from the
+difference?
+
+
+

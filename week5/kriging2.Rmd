@@ -30,7 +30,7 @@ exists $\forall s\in\mathcal{D}$.
 
 	+ $cov[z(s_i), z(s_i+h)]= E{[z(s_i)-\mu][z(s_i+h)-\mu]}=E[z(s_i)z(s_i+h)]-\mu^2=C(h)$ 
 	+ $\sigma(z(s_i))=E[z(s_i)-\mu]^2=E[z(s_i)^2]-\mu^2=C(0)$
-	+ $\rho(h)=\frac{C(h)}{\sigma(z(s_i)\sigma{z(s_i+h)}}$ is
+	+ $\rho(h)=\frac{C(h)}{\sigma(z(s_i))\sigma(z(s_i+h))}$ is
 	  `correlogram`
 
 3. The `second-order stationarity` assumes the existence of covariance.
