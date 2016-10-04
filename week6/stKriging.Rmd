@@ -1,0 +1,166 @@
+--
+title: "Week 6: Spatiotemoral Kriging"
+output: github_document
+---
+```{r global_options, echo=FALSE, results='asis'}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',  warning=FALSE, message=FALSE)
+rm(list=ls())
+```
+
+```{r spacetime, echo=T, eval=R}
+library(sp)
+library(spacetime)
+library(gstat)
+library(rgdal)
+
+# load data from package gstat
+data(air2005, package = "gstat")
+air2005=air2005
+
+set.seed(123)
+smplDays <- sort(sample(365,8))
+
+# load German boundaries
+data(air)
+DE_NUTS1 <- spTransform(DE_NUTS1, CRS("+init=epsg:32632"))
+
+plot(DE_NUTS1)
+points(air2005[,1], col='red')
+
+# station wise coverage
+barplot(sort(table(air2005@index[,1])),  main="reported days per station", ylab="number of days", xaxt="n")
+
+# acf
+acf(air2005[sample(68,1),,drop=F]@data)
+var(air2005@data$PM10)
+
+# a few daily snapshots
+air=as(air2005[,smplDays],"STFDF")
+stplot(air, col.regions=bpy.colors(120)[-(1:20)], sp.layout = list("sp.polygons", DE_NUTS1), scales=list(draw=F), key.space="right", colorkey=T, cuts=0:70, main=NULL)
+
+# number of stations
+length(air2005@sp)
+
+# calculate the empirical variogram
+
+empVgm <- variogramST(PM10~1, air2005, tlags=0:6)
+
+plot(empVgm, wireframe=T, scales=list(arrows=F))
+plot(empVgm)
+
+# fit of theoretical purely spatial models #
+############################################
+spEmpVgm <- empVgm[empVgm$timelag == 0,]
+class(spEmpVgm) <- c("gstatVariogram", "data.frame")
+spEmpVgm <- spEmpVgm[-1,1:3]
+spEmpVgm$dir.hor <- 0
+spEmpVgm$dir.ver <- 0
+spVgmMod <- fit.variogram(spEmpVgm, vgm(80,"Exp",300000,20))
+plot(spEmpVgm, spVgmMod)
+
+# fit of theoretical spatio-temporal models #
+#############################################
+
+linStAni <- estiStAni(empVgm, c(50000,200000))
+
+plot(gamma~dist, empVgm[empVgm$timelag == 0,], ylim=c(0,100), xlim=c(0,800000))
+points(empVgm[empVgm$spacelag == 0,]$timelag*linStAni, empVgm[empVgm$spacelag == 0,]$gamma, col="red")
+
+##
+# rescale empVgm and linStAni to km for estimation
+empVgm$dist  <- empVgm$dist/1000
+empVgm$avgDist  <- empVgm$avgDist/1000
+empVgm$spacelag <- empVgm$spacelag/1000
+
+linStAni <- linStAni/1000
+
+# separable
+separableModel <- vgmST("separable", space=vgm(0.9,"Exp", 200, 0.1), time =vgm(0.9,"Sph", 3.5, 0.1), sill=120)
+
+fitSepModel <- fit.StVariogram(empVgm, separableModel, fit.method = 7, stAni = linStAni, method = "L-BFGS-B", control = list(parscale=c(100,1,10,1,100)), lower = c(10,0,.1,0,0.1), upper = c(2000,1,12,1,200))
+
+attr(fitSepModel, "optim.output")$value
+# Exp+Exp: 9.87, Exp+Sph: 6.82, Sph+Exp: 10.42, Sph+Sph: 7.50
+plot(empVgm, fitSepModel, wireframe=T, all=T, scales=list(arrows=F), zlim=c(0,135))
+
+# metric
+metricModel <- vgmST("metric", joint = vgm(60, "Mat", 150, 10, kappa=0.6), stAni = 60)
+
+fitMetricModel <- fit.StVariogram(empVgm, metricModel, fit.method = 7,
+                                  stAni = linStAni, method = "L-BFGS-B",
+                                  control = list(parscale = c(10,20,5,10)),
+                                  lower = c(80,50,5,50),
+                                  upper = c(200,1500,60,300))
+
+attr(fitMetricModel, "optim.output")$value 
+# Exp: 10.25, Sph: 10.59,
+# Gau: 21.32, Mat 5: 18.20, Mat 2: 14.43, Mat 1.25: 12.04,
+# Mat 1: 11.07, Mat 0.75: 10.23, Mat 0.6: 10.05
+
+plot(empVgm, fitMetricModel, wireframe=T, all=T, scales=list(arrows=F), zlim=c(0,135))
+```
+
+# Spatiotemporal kriging estimation
+
+```{r spacetime, echo=T, eval=T}
+
+# First build a grid over Germany
+gridDE <- SpatialGrid(GridTopology(air2005@sp@bbox[,1]%/%10000*10000, c(10000,10000), cells.dim=ceiling(apply(air2005@sp@bbox,1,diff)/20000)))
+
+proj4string(gridDE) <- CRS("+init=epsg:32632")
+fullgrid(gridDE) <- F
+
+# only focus on within Germany
+ind <- over(gridDE, as(DE_NUTS1,"SpatialPolygons"))
+gridDE <- gridDE[!is.na(ind)]
+
+# back scale vgms:
+fitSepModel$space$range <- fitSepModel$space$range*1000
+
+fitMetricModel$joint$range <- fitMetricModel$joint$range*1000
+fitMetricModel$stAni <- fitMetricModel$stAni*1000
+
+
+DE_pred <- STF(gridDE, air2005@time[smplDays])
+tIDS <- unique(pmax(1,pmin(as.numeric(outer(-5:5, smplDays, "+")), 365)))
+
+sepPred <- krigeST(PM10~1, data=air2005[,tIDS], 
+                   newdata=DE_pred, fitSepModel, nmax=50,
+                   stAni=fitMetricModel$stAni/24/3600)
+metPred <- krigeST(PM10~1, data=air2005[,tIDS], 
+                   newdata=DE_pred, fitMetricModel, nmax=50,
+                   stAni=fitMetricModel$stAni/24/3600)
+# pure spatial prediction
+pureSpPred <- matrix(NA, nrow=length(gridDE), length(smplDays))
+col <- 1
+for(i in smplDays) { # i <- 1
+  pureSpPred[,col] <- krige(PM10~1, as(air2005, "STSDF")[,i],
+                            gridDE, model=spVgmMod, nmax=50)$var1.pred
+  col <- col+1
+}
+
+pureSpPred <- STFDF(gridDE, air2005@time[smplDays], data.frame(var1.pred = as.numeric(pureSpPred)))
+
+air2005 <- as(air2005, "STFDF")
+
+stpl <- stplot(sepPred, col.regions=bpy.colors(120)[-(1:20)], scales=list(draw=F),
+                 main=NULL, at=0:70, # "spatio-temporal sum-metric model"
+                 sp.layout = list(list("sp.polygons", DE_NUTS1, first=FALSE, col=gray(0.5)),
+                                  list("sp.points", air2005@sp, col=gray(0.25), pch=3, cex=.5)))
+  
+print(stpl)
+
+pureSpPlot <- stplot(pureSpPred, col.regions=bpy.colors(120)[-(1:20)], scales=list(draw=F),
+                 main=NULL, at=0:70, # "spatio-temporal sum-metric model"
+                 sp.layout = list(list("sp.polygons", DE_NUTS1, first=FALSE, col=gray(0.5)),
+                                  list("sp.points", air2005@sp, col=gray(0.25), pch=3, cex=.5)))
+
+print(pureSpPlot)
+
+#  stplot(pureSpPred, col.regions=bpy.colors, scales=list(draw=F),
+#         main="pure spatial daily prediction")
+#  stplot(sepPred, col.regions=bpy.colors(), scales=list(draw=F),
+#         main="spatio-temporal separable model")
+
+```
+
