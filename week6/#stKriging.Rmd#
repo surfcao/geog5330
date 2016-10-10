@@ -12,6 +12,7 @@ library(sp)
 library(spacetime)
 library(gstat)
 library(rgdal)
+a<-function(t)
 
 # load data from package gstat
 data(DE_RB_2005, package = "gstat")
