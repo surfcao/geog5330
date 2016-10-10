@@ -15,7 +15,10 @@ library(rgdal)
 
 # load data from package gstat
 data(DE_RB_2005, package = "gstat")
-air2005=air2005
+
+# load('air.img')
+# DE_RB_2005 data was not included in the older packages of gstat
+air2005=DE_RB_2005
 
 set.seed(123)
 smplDays <- sort(sample(365,8))
