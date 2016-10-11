@@ -1,0 +1,48 @@
+---
+title: "Week 7 Homework"
+output: github_document
+---
+
+The `trees.txt` file in the included `Data` folder includes presence locations
+of Joshua trees in the southern California, Nevada and Arizona. Please add your
+lines codes in the following snippets of the codes to address the question I put
+in the comments:
+
+
+```{r hw7, eval=T, echo=T}
+# plot the trees 
+library(sp)
+library(maptools)
+library(maps)
+library(mapdata)
+
+locs = read.csv(file="Data/trees.txt", header=T, sep="\t")
+
+# First to look at the data 
+data(stateMapEnv)
+plot(c(-119, -112), c(33.0, 38), mar=par("mar"), xlab="longitude", ylab="latitude", xaxt="n", yaxt="n", type="n", main="Joshua tree presence data")
+
+map("state", xlim=c(-119, -112), ylim=c(33.0, 38), fill=T, col="cornsilk", add=T)
+points(locs$lngitude,locs$latitude)
+
+
+# change map projection of orgiginal lat/lon data.
+
+coordinates(locs)=c('lngitude', 'latitude')
+proj4string(locs) = CRS('+init=epsg:4326')
+
+projLocs<-spTransform(locs, CRS("+init=epsg:2163"))
+
+# Here, please add codes to generate the kenerl density estimation map
+# of the trees.
+
+
+# Please repeat the above KDE codes using the following options of
+# `sigma` parameters and descible the difference: `sigma=10`,
+# `sigma=1000` and `sigma=10000`
+
+
+# Please add codes to generate the sample curves of K functions and
+# run test to verify whethher the data are clustered or not.
+
+```
