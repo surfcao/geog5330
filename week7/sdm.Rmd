@@ -110,7 +110,7 @@ $\int_{R^d}K(u)du = 1$, where $u=|s-s_i|$
 ```{r ppa3, eval=T, echo=T }
 library(spatstat)
 X=bei
-den=density(X, bw=70, main='density')
+den=density(X, sigma=70, main='density')
 plot(den)
 plot(X, add = TRUE, cex = 0.5, main='density', pch = 20)
 #persp(den)
