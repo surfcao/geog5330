@@ -1,0 +1,25 @@
+[general]
+creator=R package 'raster'
+created=2016-10-18 16:40:27
+[georeference]
+nrows=60
+ncols=84
+xmin=-119
+ymin=33
+xmax=-112
+ymax=38
+projection=+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0
+[data]
+datatype=FLT8S
+byteorder=little
+nbands=19
+bandorder=BIL
+minvalue=-8:63:35:2174:143:-151:120:-63:-37:66:-68:47:7:0:15:19:1:2:18
+maxvalue=238:192:59:9311:454:100:431:331:322:357:145:849:163:25:101:438:107:198:432
+nodatavalue=-1.7e+308
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=bio1:bio2:bio3:bio4:bio5:bio6:bio7:bio8:bio9:bio10:bio11:bio12:bio13:bio14:bio15:bio16:bio17:bio18:bio19

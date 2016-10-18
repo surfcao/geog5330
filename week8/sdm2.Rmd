@@ -8,25 +8,77 @@ output: github_document
 knitr::opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',  warning=FALSE, message=FALSE, results='hide')
 rm(list=ls())
 library(sp)
+library(spatstat)
 library(dismo)
 
 ```
 
+# Species distribution modeling
+
+## Poisson process
+
+- Homogeneous Poisson process with intensity $\lambda$ have two properties:
+    - $N(A)$ is Poisson distributed with mean $\lambda|A|$, for all $A$
+    - Condition on $N(A)$, the $n$ points are independent and uniformly
+      distributed in $A$
+      
+- model for complete spatial randomness and null model in a statistical
+  analysis.
+  
+## Non-Poisson Process
+
+- Poisson cluster processes
+     - Hierarchical processes: Parent Poisson processes with offspring point
+       processes
+     - Example, Matern cluster process, each parent has Poisson($\mu$) number of
+       offsprings uniformly distributed around the parent.
+     
+- Cox processes
+      - A Poisson process with a random intensity function 
+      - Example, log-Gaussian Cox processes (LGCP) in which intensity
+        $\lambda(u)$ is a Gaussian random field.
+
+```{r ppp, warning=FALSE, eval=T, echo=T}
+
+# Materm cluster proccess
+cluster <- rMatClust(20, 0.05, 4)
+plot(cluster)
+
+# log-Gaussian Cox procces
+
+lgcp <-  rLGCP("exp", 3, var=0.2, scale=.1 )
+plot(lgcp)
+
+# inhomogeneous LGCP with Gaussian covariance function
+m <- as.im(function(x, y){5 - 1.5 * (x - 0.5)^2 + 2 * (y - 0.5)^2}, W=owin())
+plot(m)
+X <- rLGCP("gauss", m, var=0.15, scale =0.5)
+plot(attr(X, "Lambda"))
+points(X)
+
+```
 
 # Species distribution modeling
+
+Species distribution models (SDMs) estimate the relationship between species
+records at sites and the environmental and/or spatial characteristics of those
+sites.
 
 ## Background data
 
 - Background data are not attempting to guess at absence locations, but rather to
 characterize environments in the study region.
 
-- Background data establishes the environmental domain of the study, whilst
-presence data should establish under which conditions a species is more likely
-to be present than on average.
+- Background data establishes the environmental domain of the study or regions
+where a specie should habitat but hasn't, whilst presence data should establish
+under which conditions a species is more likely to be present than on average.
 
-- A closely related but different concept, that of "pseudo-absences", is also
-used for generating the non-presence class. In this case, researchers try to
-guess where absences might occur they may sample the whole region except at presence locations, or they might sample at places unlikely to be suitable for the species.  
+- A closely related concept is "pseudo-absences", which is also used for
+generating the non-presence class. In this case, researchers try to guess where
+absences might occur they may sample the whole region except at presence
+locations, or they might sample at places unlikely to be suitable for the
+species.
+
 
 ```{r sdm1, echo=T, eval=T}
 
@@ -55,39 +107,26 @@ points(bg2, cex=0.5)
 
 ```{r pseudo-absense, echo=T, eval=T}
 
+# Pseudo-abasense
+
 file <- paste(system.file(package="dismo"), '/ex/acaule.csv' , sep='')
 ac <- read.csv(file)
-
 coordinates(ac) <- ~lon+lat
-
 projection(ac)<-CRS('+proj=longlat +datum=WGS84')
 
-plot(ac)
+data(wrld_simpl)
+plot(mask)
+points(ac)
+plot(wrld_simpl, add=TRUE, border='dark grey')
 
+# Generate a cicule centered at each acaule
 x <- circles(ac, d=50000, lonlat=TRUE)
 pol <- polygons(x)
 
+# Now sample 250 random 'pseudo' location around each acaule sample locations
 samp1 <- spsample(pol, 250, type= 'random' , iter=25)
-cells <- cellFromXY(mask, samp1)
+points(samp1)
 
-cells <- unique(cells)
-
-length(cells)
-
-xy <- xyFromCell(mask, cells)
-plot(pol, axes=TRUE)
-points(xy, cex=0.75, pch=20, col= 'blue')
-
-spxy <- SpatialPoints(xy, proj4string=CRS('+proj=longlat +datum=WGS84'))
-o <- over(spxy, geometry(x))
-xyInside <- xy[!is.na(o), ]
-
-
-files <- list.files(path=paste(system.file(package="dismo"), '/ex',
-sep= ''), pattern= 'grd' , full.names=TRUE )
-
-predictors <- stack(files)
-plot(predictors)
 
 ```
 
@@ -98,11 +137,13 @@ plot(predictors)
 # Regression models
 
 library(maptools)
-data(wrld_simpl)
 
+# sample locations
 file <- paste(system.file(package="dismo"), "/ex/bradypus.csv", sep="")
 bradypus <- read.table(file,  header=TRUE,  sep= ',')
 bradypus  <- bradypus[,-1]
+
+# environment conditions
 
 files <- list.files(path=paste(system.file(package="dismo"), '/ex', sep= ''), pattern= 'grd' , full.names=TRUE )
 predictors <- stack(files)
@@ -116,39 +157,41 @@ plot(wrld_simpl, add=TRUE)
 points(bradypus, col= ' blue ')
 
 
-presvals <- extract(predictors, bradypus)
-set.seed(0)
-backgr <- randomPoints(predictors, 500)
-absvals <- extract(predictors, backgr)
-pb <- c(rep(1, nrow(presvals)), rep(0, nrow(absvals)))
-sdmdata <- data.frame(cbind(pb, rbind(presvals, absvals)))
-sdmdata[, 'biome'] = as.factor(sdmdata[, 'biome']) 
+# 'biome' is a categorical data that needs special treatment in
+# regression case, let's simply drop it from the predicator stacks.
 
 pred_nf <- dropLayer(predictors, 'biome')
+
+# Generate background data. To speed up processing, let's restrict the
+# predictions to a more restricted area:
+
+ext = extent(-90, -32, -33, 23)
+backg <- randomPoints(pred_nf, n=1000, ext=ext, extf = 1.25)
+colnames(backg) = c('lon', 'lat')
+backg=as.data.frame(backg)
+
+# Randomly seperate the bradypus observations into 5 groups and use
+# four of them as training data and the rest one for validation
 
 group <- kfold(bradypus, 5)
 pres_train <- bradypus[group != 1, ]
 pres_test <- bradypus[group == 1, ]
 
-#To  speed  up  processing,  let's  restrict  the  predictions  to  a  more  restricted area (de ned by a rectangular extent):
-
-ext = extent(-90, -32, -33, 23)
-
-# background
-
-backg <- randomPoints(pred_nf, n=1000, ext=ext, extf = 1.25)
-colnames(backg) = c('lon', 'lat')
 group <- kfold(backg, 5)
 backg_train <- backg[group != 1, ]
 backg_test <- backg[group == 1, ]
+
+# Display the training and validation test data
 r = raster(pred_nf, 1)
 plot(!is.na(r), col=c(' white ' , ' light grey '), legend=FALSE)
 plot(ext, add=TRUE, col= ' red ' , lwd=2)
-points(backg_train, pch= ' - ' , cex=0.5, col= ' yellow ')
-points(backg_test, pch= ' - ' ,  cex=0.5, col= ' black ')
+points(backg_train, pch= ' + ' , cex=1.5, col= ' yellow ')
+points(backg_test, pch= ' + ' ,  cex=1.5, col= ' red ')
 points(pres_train, pch= ' + ' , col= ' green ')
 points(pres_test, pch= '+' , col= 'blue')
 
+
+# Combine sample locations and environment conditions into one data frame
 train <- rbind(pres_train, backg_train)
 pb_train <- c(rep(1, nrow(pres_train)), rep(0, nrow(backg_train)))
 envtrain <- extract(predictors, train)
@@ -162,7 +205,7 @@ testpres[ ,'biome'] = factor(testpres[ ,'biome'], levels=1:14)
 testbackg[ ,'biome'] = factor(testbackg[ ,'biome'], levels=1:14)
 
 #In R , GLM is implemented in the 'glm' function, and the link function and
-#error distribution are specied with the 'family' argument. Examples are:
+#error distribution are specified with the 'family' argument. Examples are:
 #family = binomial(link = "logit")
 #family = gaussian(link = "identity")
 #family = poisson(link = "log")
@@ -175,8 +218,16 @@ summary(gm1)
 gm2 <- glm(pa ~ bio1+bio5 + bio6 + bio7 + bio8 + bio12 + bio16 + bio17,
 family = gaussian(link = "identity"), data=envtrain)
 
-evaluate(testpres, testbackg, gm1)
+# Model evaluation
 
+# ROC curve (reveiver operating characterstic curve) and related AUC
+# (area under the curve) are commonly used metrics for classification
+# performance. The ROC curve is based on confusion matrix.  X is false
+# positive rate (FP/(FP+TN))and Y is true positive rate (TP/(TP+FN)).
+# Applying these two rate to different sets of classification
+# threshold leads to the ROC curve
+
+ge1=evaluate(testpres, testbackg, gm1)
 ge2=evaluate(testpres, testbackg, gm2)
 
 pg <- predict(predictors, gm2, ext=ext)
@@ -189,19 +240,25 @@ plot(wrld_simpl, add=TRUE, border='dark grey')
 points(pres_train, pch='+')
 points(backg_train, pch='-', cex=0.25)
 
-
 ```
 
-## Maxent
+## MaxEnt
 
-```{r maxent, eval=T, echo=T}
+- One of the most widely used SDM framework with consistently competitive
+  predictive performance
 
-# MaxEnt
+
+```{r maxent, eval=T, echo=T, warning=FALSE, message=FALSE}
+
+# MaxEnt, is a seperate package writtten in JAVA. Package 'dismo'
+# provide the interface to Maxent
 
 jar <- paste(system.file(package="dismo"), "/java/maxent.jar", sep= '') 
+
 xm <- maxent(predictors, p=pres_train, a= backg_train,factors= 'biome')
 plot(xm)
 
+# Check the response curve of each environmental conditions
 response(xm)
 
 e <- evaluate(pres_test, backg_test, xm, predictors)
@@ -214,7 +271,6 @@ tr <- threshold(e, 'spec_sens')
 plot(px > tr, main='presence/absence')
 plot(wrld_simpl, add=TRUE, border='dark grey')
 points(pres_train, pch='+')
-
 
 ```
 
@@ -265,7 +321,7 @@ points(backg_train, pch='-', cex=0.25)
 
 ## Geographic circles
 
-```{r hull, eval=T, echo=T}
+```{r circle, eval=T, echo=T}
 
 circ <- circles(pres_train, lonlat=TRUE)
 pc <- predict(seamask, circ, mask=TRUE)
@@ -298,7 +354,6 @@ plot(pa, main='presence/absence')
 plot(wrld_simpl, add=TRUE, border='dark grey')
 points(pres_train, pch='+')
 points(backg_train, pch='-', cex=0.25) 
-
 
 
 ```

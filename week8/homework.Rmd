@@ -1,0 +1,79 @@
+---
+title: "Week 8 Homework"
+output: github_document
+---
+
+# Question 1
+The 'trees2.csv' file in the Data folder is a subset of Joshua tree location we
+used for last week's homework and raster measurements of climate conditions
+('ext5.grd') for the same area.  Please add your lines codes in the following
+snippets of the codes to address the question I put in the comments:
+
+
+```{r hw8, eval=T, echo=T}
+# plot the trees 
+library(sp)
+library(maptools)
+library(maps)
+library(mapdata)
+library(dismo)
+
+locs = read.csv(file="Data/trees2.csv", header=T)
+
+# Generate psuedo-absence tree locations as background data
+
+coordinates(locs)=c('lngitude', 'latitude')
+proj4string(locs) = CRS('+init=epsg:4326')
+
+x = circles(coordinates(locs), d=50000, lonlat=T)
+bg = spsample(x@polygons, 1000, type='random', iter=1000)
+
+
+# load the climate conditions raster datasets
+clim = brick('Data/ext5.grd')
+
+plot(clim, 1, cex=0.5, legend=T, mar=par("mar"), xaxt="n", yaxt="n", main="Annual mean temperature") 
+map("state", xlim=c(-119, -113), ylim=c(33.5, 38), fill=F, col="cornsilk", add=T)
+
+# presence of trees
+points(locs, col='red')
+# psuedo-absense
+points(bg, col='blue')
+
+# extracting bioclim values for locations
+presence_bc = extract(clim, coordinates(locs)) # for the presence points
+bg_bc = extract(clim, bg) # for the pseudo-absence points
+
+# put all the data including presence locations and related climate conditions into a data frame
+presence_bc = data.frame(lon=coordinates(locs)[,1], lat=coordinates(locs)[,2], presence_bc)
+
+# do the samething for background pseudo-absence data
+
+bg_bc = data.frame(lon=coordinates(bg)[,1], lat=coordinates(bg)[,2], bg_bc)
+
+length(which(is.na(bg_bc$bio1))) # double-check for missing data
+bg_bc = bg_bc[!is.na(bg_bc$bio1), ] # and pull out the missing values
+
+
+group_p = kfold(presence_bc, 5) # divide the presence data frame into 5 groups 
+group_a = kfold(bg_bc, 5) # same for bg_bc
+
+## Till now, all the data prepreration has finished. Now your turn.
+##  Based on the kfold results, choose one group (say group 2) as your
+##  validation dataset, and use the other four groups as your training
+##  data. Use MaxEnt to generate a presense probability map of Joushua
+##  trees, plot it, output the accuracy measure. Please identify the
+##  climate conditions that affect the most to the Joushua tree
+##  distribution and explain how
+
+
+```
+
+
+# Question 2
+
+Please sign up on Google Earth Engine at
+[https://signup.earthengine.google.com/#/](https://signup.earthengine.google.com/#/). We
+will need it for one of the following courses, and it may take a while for
+Google to approve your request.
+
