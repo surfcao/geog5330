@@ -1,0 +1,20 @@
+
+---
+title: "Week 9: Project Proposal"
+output: github_document
+---
+
+## Project Proposal
+
+Please write a two-page proposal for the class project. The proposal should
+contain the following elements:
+
+- Project objective
+- Project expectation
+- Analysis to be conducted
+- Data sources
+
+Please write it in Markdown or R Markdown and submit in both source and pdf
+files. Note that each of you will have a git repository for the class project,
+please put everything related to the project (proposal, data, code, report) in
+that repository.
