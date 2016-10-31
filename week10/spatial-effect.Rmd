@@ -1,0 +1,102 @@
+---
+title: "Week 10: Areal data analysis"
+output: github_document
+---
+
+```{r global_options, eval=T, echo=F,results='hide', error=F, warning=FALSE}
+
+knitr::opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',  warning=FALSE, message=FALSE, results='hide')
+rm(list=ls())
+library(rgdal)
+library(spdep)
+```
+
+
+```{r area1, eval=T, echo=T}
+
+# Simulation study to investigate the effect of not accounting for 
+# residual spatial dependence in spatial regression
+library(fields)
+library(mvtnorm)
+
+
+#Generate data with these specs
+n.obs<-100
+n.datasets<-100
+beta<-0.1
+nugget<-0
+partial_sill<-1
+range<-0.05
+
+
+COVER<-rep(0,n.datasets)
+
+for(rep in 1:n.datasets){
+ 
+ #Generage data:
+ s<-cbind(runif(n.obs),runif(n.obs))
+ d<-rdist(s)
+ COR<-exp(-d/range)
+ C<-partial_sill*COR + nugget*diag(n.obs)
+ x<-rmvnorm(1,rep(0,n.obs),C)
+ y<-rmvnorm(1,x*beta,C)
+ x<-as.vector(x)
+ y<-as.vector(y)
+
+ #Fit OLS regression
+ fit<-lm(y~x)
+ beta_hat<-summary(fit)$coef[2,1]
+ beta_se<-summary(fit)$coef[2,2]
+
+ #Determine if the true beta is contained in the 
+ #95% interval
+ COVER[rep]<- beta > beta_hat-1.96*beta_se &
+              beta < beta_hat+1.96*beta_se
+}
+print("Empirical coverage of 95% intervals")
+print(mean(COVER))
+
+
+
+
+#Repeat the same experiment for several different spatial ranges
+
+n.datasets<-1000
+range<-seq(0.01,0.5,length=10)
+COVER<-matrix(0,n.datasets,10)
+
+for(j in 1:10){for(rep in 1:n.datasets){
+ s<-cbind(runif(n.obs),runif(n.obs))
+ d<-rdist(s)
+ COR<-exp(-d/range[j])
+ C<-partial_sill*COR + nugget*diag(n.obs)
+ x<-rmvnorm(1,rep(0,n.obs),C)
+ y<-rmvnorm(1,x*beta,C)
+ x<-as.vector(x)
+ y<-as.vector(y)
+ fit<-lm(y~x)
+
+ beta_hat<-summary(fit)$coef[2,1]
+ beta_se<-summary(fit)$coef[2,2]
+
+ COVER[rep,j]<- beta > beta_hat-1.96*beta_se &
+                beta < beta_hat+1.96*beta_se
+}}
+
+#Empirical coverage for each range:
+CP<-colMeans(COVER)
+#Monte Carlo estimate of the error in CP
+SE<-sqrt(CP*(1-CP)/n.datasets)
+
+
+#Plot estimated coverage with errors
+plot(range,CP,xlab="Spatial range",ylab="Coverage probability")
+lines(range,CP,lwd=2)
+
+points(range,CP-2*SE)
+lines(range,CP-2*SE,lty=2)
+points(range,CP+2*SE)
+lines(range,CP+2*SE,lty=2)
+
+```
+

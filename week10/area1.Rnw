@@ -1,0 +1,21 @@
+
+---
+title: "Week 10: Effects of Spatial Dependence"
+output: github_document
+---
+
+```{r global_options, eval=T, echo=F,results='hide', error=F, warning=FALSE}
+
+knitr::opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',  warning=FALSE, message=FALSE, results='hide')
+rm(list=ls())
+library(fields)
+library(mvtnorm)
+```
+
+c.sids <- readShapePoly(system.file("etc/shapes/sids.shp", package="spdep")[1],ID="FIPSNO", proj4string=CRS("+proj=longlat +ellps=clrk66"))
+
+rn <- sapply(slot(nc.sids, "polygons"), function(x) slot(x, "ID"))
+
+
+
+

@@ -1,0 +1,301 @@
+
+---
+title: "Week 10: Effects of Spatial Dependence"
+output: github_document
+---
+
+```{r global_options, eval=T, echo=F,results='hide', error=F, warning=FALSE}
+
+knitr::opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',  warning=FALSE, message=FALSE, results='hide')
+rm(list=ls())
+library(spdep)
+library(rgdal)
+library(maptools)
+library(RColorBrewer)
+```
+
+```{r area1, eval=T, echo=T}
+
+NY8 <- readOGR("Data", "NY8_utm18")
+Syracuse <- NY8[NY8$AREANAME == "Syracuse city",]
+plot(Syracuse)
+
+# define neighorhood based on spatial adjacency
+Sy0_nb=poly2nb(Syracuse, queen=T)
+
+# define neighorhood based on neighorhood definition
+
+coords <- coordinates(Syracuse)
+IDs <- row.names(Syracuse)
+Sy8_nb <- knn2nb(knearneigh(coords, k=1), row.names=IDs)
+Sy9_nb <- knn2nb(knearneigh(coords, k=2), row.names=IDs)
+Sy10_nb <- knn2nb(knearneigh(coords, k=4), row.names=IDs)
+dsts <- unlist(nbdists(Sy8_nb, coords))
+Sy11_nb <- dnearneigh(coords, d1=0, d2=0.75*max(dsts), row.names=IDs)
+
+
+# supplement the neighorhood with weights
+
+Sy0_lw_W <- nb2listw(Sy0_nb)
+Sy0_lw_W
+names(Sy0_lw_W)
+
+
+1/rev(range(card(Sy0_lw_W$neighbours)))
+summary(unlist(Sy0_lw_W$weights))
+summary(sapply(Sy0_lw_W$weights, sum))
+
+
+Sy0_lw_B <- nb2listw(Sy0_nb, style="B")
+summary(unlist(Sy0_lw_B$weights))
+summary(sapply(Sy0_lw_B$weights, sum))
+
+# define weight based on distance
+
+dsts <- nbdists(Sy0_nb, coordinates(Syracuse))
+idw <- lapply(dsts, function(x) 1/(x/1000))
+Sy0_lw_idwB <- nb2listw(Sy0_nb, glist=idw, style="B")
+summary(unlist(Sy0_lw_idwB$weights))
+summary(sapply(Sy0_lw_idwB$weights, sum))
+
+# Allow al-zeros neighourhood, the folling line will output errors,
+# but with zero.polic=T, the error will be gone.
+
+try(Sy0_lw_D1 <- nb2listw(Sy11_nb, style="B"))
+
+Sy0_lw_D1 <- nb2listw(Sy11_nb, style="B", zero.policy=TRUE)
+print(Sy0_lw_D1, zero.policy=TRUE)
+
+# Using Weights to Simulate Spatial Autocorrelation
+
+
+set.seed(987654)
+n <- length(Sy0_nb)
+uncorr_x <- rnorm(n)
+rho <- 0.5
+autocorr_x <- invIrW(Sy0_lw_W, rho) %*% uncorr_x
+
+oopar <- par(mfrow=c(1,2), mar=c(4,4,3,2)+0.1)
+plot(uncorr_x, lag(Sy0_lw_W, uncorr_x), xlab="", cex.lab=0.8,
+ ylab="spatial lag", main="Uncorrelated random variable", cex.main=0.8)
+lines(lowess(uncorr_x, lag(Sy0_lw_W, uncorr_x)), lty=2, lwd=2)
+plot(autocorr_x, lag(Sy0_lw_W, autocorr_x),
+ xlab="", ylab="",
+ main="Autocorrelated random variable", cex.main=0.8, cex.lab=0.8)
+lines(lowess(autocorr_x, lag(Sy0_lw_W, autocorr_x)), lty=2, lwd=2)
+par(oopar)
+
+# Spatial Autocorrelation: Tests
+
+moran.test(uncorr_x, listw=Sy0_lw_W)
+moran.test(autocorr_x, listw=Sy0_lw_W)
+moran.test(autocorr_x, listw=nb2listw(Sy9_nb, style="W"))
+
+
+###################################################
+et <- coords[,1] - min(coords[,1])
+trend_x <- uncorr_x + 0.00025 * et
+moran.test(trend_x, listw=Sy0_lw_W)
+lm.morantest(lm(trend_x ~ et), listw=Sy0_lw_W)
+
+
+# Change of Moran's I with order of spatial contiguity and distances 
+
+NY_nb <- read.gal("Data/NY_nb.gal", region.id=row.names(NY8))
+#K <- moran(NY8$Cases, listw=nb2listw(NY_nb, style="B"), n=length(NY8$Cases), S0=Szero(nb2listw(NY_nb, style="B")))$K
+
+cor8 <- sp.correlogram(neighbours=NY_nb, var=NY8$Cases, order=8, method="I", style="C")
+
+library(pgirmess)
+corD <- correlog(coordinates(NY8), NY8$Cases, method="Moran")
+
+oopar <- par(mfrow=c(1,2))
+plot(cor8, main="Contiguity lag orders")
+plot(corD, main="Distance bands")
+par(oopar)
+
+
+###################################################
+### code chunk number 54: lat.Rnw:1631-1655
+###################################################
+library(RColorBrewer)
+oopar <- par(mfrow=c(1,2))
+msp <- moran.plot(NY8$Cases, listw=nb2listw(NY_nb, style="C"), quiet=TRUE)
+title("Moran scatterplot")
+infl <- apply(msp$is.inf, 1, any)
+x <- NY8$Cases
+lhx <- cut(x, breaks=c(min(x), mean(x), max(x)), labels=c("L", "H"), include.lowest=TRUE)
+wx <- lag(nb2listw(NY_nb, style="C"), NY8$Cases)
+lhwx <- cut(wx, breaks=c(min(wx), mean(wx), max(wx)), labels=c("L", "H"), include.lowest=TRUE)
+lhlh <- interaction(lhx, lhwx, infl, drop=TRUE)
+cols <- rep(1, length(lhlh))
+cols[lhlh == "H.L.TRUE"] <- 2
+cols[lhlh == "L.H.TRUE"] <- 3
+cols[lhlh == "H.H.TRUE"] <- 4
+plot(NY8, col=brewer.pal(4, "Accent")[cols])
+legend("topright", legend=c("None", "HL", "LH", "HH"), fill=brewer.pal(4, "Accent"), bty="n", cex=0.8, y.intersp=0.8)
+title("Tracts with influence")
+par(oopar)
+
+# Local test
+lm1 <- localmoran(NY8$Cases, listw=nb2listw(NY_nb, style="C"))
+#lm2 <- as.data.frame(localmoran.sad(lm(Cases ~ 1, NY8), nb=NY_nb, style="C"))
+#lm3 <- as.data.frame(localmoran.exact(lm(Cases ~ 1, NY8), nb=NY_nb, style="C"))
+
+# Local test for rate
+r <- sum(NY8$Cases)/sum(NY8$POP8)
+rni <- r*NY8$POP8
+lw <- nb2listw(NY_nb, style="C")
+sdCR <- (NY8$Cases - rni)/sqrt(rni)
+wsdCR <- lag(lw, sdCR)
+I_CR <- sdCR * wsdCR
+
+gry <- c(rev(brewer.pal(8, "Reds")[1:6]), brewer.pal(6, "Blues"))
+NY8$Standard <- lm1[,1]
+NY8$"Constant_risk" <- I_CR
+#nms <- match(c("Standard", "Constant_risk"), names(NY8))
+spplot(NY8, c("Standard", "Constant_risk"), at=c(-2.5,-1.4,-0.6,-0.2,0,0.2,0.6,4,7), col.regions=colorRampPalette(gry)(8))
+
+```
+
+```{r area2, eval=T, echo=T}
+
+nylm <- lm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8)
+summary(nylm)
+NY8$lmresid <- residuals(nylm)
+NYlistw<-nb2listw(NY_nb, style = "B")
+lm.morantest(nylm, NYlistw)
+
+
+# Spatial conditional and simultaneous autoregression 
+
+nysar<-spautolm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, listw=NYlistw)
+summary(nysar)
+
+nylam1 <- c(nysar$lambda)
+nylam2 <- c(LR1.spautolm(nysar)$p.value)
+
+# Display
+NY8$sar_trend <- nysar$fit$signal_trend
+NY8$sar_stochastic <- nysar$fit$signal_stochastic
+rds <- colorRampPalette(brewer.pal(8, "RdBu"))
+tr_at <- seq(-1, 1.3, length.out=21)
+tr_rds <- rds(sum(tr_at >= 0)*2)[-(1:(sum(tr_at >= 0)-sum(tr_at < 0)))]
+tr_pl <- spplot(NY8, c("sar_trend"), at=tr_at, col="transparent", col.regions=tr_rds, main=list(label="Trend", cex=0.8))
+st_at <- seq(-0.16, 0.39, length.out=21)
+st_rds <- rds(sum(st_at >= 0)*2)[-(1:(sum(st_at >= 0)-sum(st_at < 0)))]
+st_pl <- spplot(NY8, c("sar_stochastic"), at=st_at, col="transparent", col.regions=st_rds, main=list(label="Stochastic", cex=0.8))
+plot(tr_pl, split=c(1,1,2,1), more=TRUE)
+plot(st_pl, split=c(2,1,2,1), more=FALSE)
+
+# The proximity to a TCE seems not to be significant, after we include
+# the population as weights, it becomes significant.
+
+nylmw <- lm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, weights=POP8)
+summary(nylmw)
+NY8$lmwresid <- residuals(nylmw)
+
+# Display
+gry <- c(rev(brewer.pal(6, "Reds")[1:4]), colorRampPalette(brewer.pal(5, "Blues"))(9))
+TCEpts <- list("sp.points", TCE, pch=16, col="grey5")
+spplot(NY8, c("lmresid", "lmwresid"), sp.layout=list(TCEpts), col.regions=gry, col="transparent", lwd=0.5, at=seq(-2,4.5,0.5))
+
+# Now check the moran's again
+
+lm.morantest(nylmw, NYlistw)
+
+# Include weights in spautolm
+
+nysarw<-spautolm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME , data=NY8, listw=NYlistw, weights=POP8)
+summary(nysarw)
+
+NY8$sarw_trend <- nysarw$fit$signal_trend
+NY8$sarw_stochastic <- nysarw$fit$signal_stochastic
+tr_pl <- spplot(NY8, c("sarw_trend"), at=tr_at, col="transparent", col.regions=tr_rds, main=list(label="Trend", cex=0.8))
+st_pl <- spplot(NY8, c("sarw_stochastic"), at=st_at, col="transparent", col.regions=st_rds, main=list(label="Stochastic", cex=0.8))
+plot(tr_pl, split=c(1,1,2,1), more=TRUE)
+plot(st_pl, split=c(2,1,2,1), more=FALSE)
+
+# Conditional Autoregressive Models
+
+nycar<-spautolm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME , data=NY8, family="CAR",
+   listw=NYlistw)
+summary(nycar)
+
+
+nylam1 <- c(nycar$lambda)
+
+
+nycarw<-spautolm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, family="CAR",
+   listw=NYlistw, weights=POP8)
+summary(nycarw)
+
+
+nysarwM<-spautolm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, family="SAR",
+   listw=NYlistw, weights=POP8, method="Matrix")
+
+
+summary(nysarwM)
+
+
+1/range(eigenw(NYlistw))
+nysar_ll<-spautolm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, family="SAR",
+   listw=NYlistw, llprof=100)
+nysarw_ll<-spautolm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, family="SAR",
+   listw=NYlistw, weights=POP8, llprof=100)
+
+# comparison
+ylim <- range(c(nysarw_ll$llprof$ll, nysar_ll$llprof$ll), na.rm=TRUE)
+plot(nysarw_ll$llprof$lambda, nysarw_ll$llprof$ll, type="l", xlab=expression(lambda), ylab="log likelihood", ylim=ylim, lwd=2)
+abline(v=nysarw_ll$lambda)
+abline(h=nysarw_ll$LL)
+lines(nysar_ll$llprof$lambda, nysar_ll$llprof$ll, lty=2, lwd=2)
+abline(v=nysar_ll$lambda, lty=2)
+abline(h=nysar_ll$LL, lty=2)
+legend("bottom", legend=c("weighted SAR", "SAR"), lty=c(1,2), lwd=2, bty="n")
+
+# SMA model 
+nysmaw<-spautolm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, family="SMA",
+   listw=NYlistw, weights=POP8)
+summary(nysmaw)
+
+# Spatial economitrics approach
+
+#NYlistwW <- nb2listw(NY_nb, style = "W")
+#res <- lm.LMtests(nylm, listw=NYlistwW, test="all")
+#tres <- t(sapply(res, function(x) c(x$statistic, x$parameter, x$p.value)))
+#colnames(tres) <- c("Statistic", "df", "p-value")
+#printCoefmat(tres)
+#
+#
+#nylag <- lagsarlm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, listw=NYlistwW)
+#summary(nylag)
+#bptest.sarlm(nylag)
+#
+#
+#
+#McRes <- sarml(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, wmat=listw2mat(NYlistwW), eigvar=eigenw(NYlistwW), print=FALSE, data=NY8)
+#c(McRes$beta, rho=McRes$rho, sig2=McRes$sig2)
+#
+#
+#nymix <- lagsarlm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, listw=NYlistwW, type="mixed")
+#nymix
+#anova(nymix, nylag)
+#
+#
+#W <- as(as_dgRMatrix_listw(NYlistwW), "CsparseMatrix")
+#trMat <- trW(W, type="mult")
+#head(trMat)
+#
+#
+#
+#
+#nyerr <- errorsarlm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, listw=NYlistwW)
+#summary(nyerr)
+#LR.sarlm(nyerr, nymix)
+#
+#
+#nyerr1 <- errorsarlm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, listw=NYlistwW, etype="emixed")
+#coef(nyerr1)
+#
+#```
