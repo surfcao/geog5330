@@ -313,6 +313,7 @@ spplot(NY8, c(&quot;Standard&quot;, &quot;Constant_risk&quot;), at=c(-2.5,-1.4,-
 <p>where <span class="math inline">\(j\)</span> is the neighbors of <span class="math inline">\(i\)</span>.</p>
 <p>Using Brook’s Lemma we can obtain:</p>
 <p><span class="math display">\[e_1, e_2, \ldots, e_n \sim N(0, (I-B)^{-1}D)\]</span></p>
+<p>Compared to SAR model, the CAR model is easier to be fitted into a Bayesian hierarchical models.</p>
 <pre class="r"><code>nylm &lt;- lm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8)
 summary(nylm)
 NY8$lmresid &lt;- residuals(nylm)

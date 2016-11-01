@@ -232,6 +232,10 @@ Using Brook’s Lemma we can obtain:
 $$e_1, e_2, \ldots, e_n \sim N(0, (I-B)^{-1}D)$$
 
 
+Compared to SAR model, the CAR model is easier to be fitted into a Bayesian 
+hierarchical models. 
+
+
 ```{r area2, eval=T, echo=T}
 
 nylm <- lm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8)
