@@ -14,9 +14,12 @@ library(maptools)
 library(RColorBrewer)
 ```
 
+# Areal Data and Spatial Autocorrelation
+
 ```{r area1, eval=T, echo=T}
 
 NY8 <- readOGR("Data", "NY8_utm18")
+TCE <- readOGR("Data", "TCE")
 Syracuse <- NY8[NY8$AREANAME == "Syracuse city",]
 plot(Syracuse)
 
@@ -61,7 +64,7 @@ summary(sapply(Sy0_lw_idwB$weights, sum))
 # Allow al-zeros neighourhood, the folling line will output errors,
 # but with zero.polic=T, the error will be gone.
 
-try(Sy0_lw_D1 <- nb2listw(Sy11_nb, style="B"))
+#try(Sy0_lw_D1 <- nb2listw(Sy11_nb, style="B"))
 
 Sy0_lw_D1 <- nb2listw(Sy11_nb, style="B", zero.policy=TRUE)
 print(Sy0_lw_D1, zero.policy=TRUE)
@@ -115,9 +118,6 @@ plot(corD, main="Distance bands")
 par(oopar)
 
 
-###################################################
-### code chunk number 54: lat.Rnw:1631-1655
-###################################################
 library(RColorBrewer)
 oopar <- par(mfrow=c(1,2))
 msp <- moran.plot(NY8$Cases, listw=nb2listw(NY_nb, style="C"), quiet=TRUE)
@@ -157,6 +157,43 @@ NY8$"Constant_risk" <- I_CR
 spplot(NY8, c("Standard", "Constant_risk"), at=c(-2.5,-1.4,-0.6,-0.2,0,0.2,0.6,4,7), col.regions=colorRampPalette(gry)(8))
 
 ```
+
+# Modeling areal data
+
+## Spatial statistical approach
+
+### Simultaneous autoregressive model (SAR)
+
+The SAR specification uses a regression on the values from the other areas to
+account for the spatial dependence. This means that the error terms ε are
+modelled so that they depend on each other in the following way:
+
+$$e_i=\sum_{i=1}^{m} b_{ij}e_i+\epsilon_i$$
+
+If denote $e_i=Y-X^TB$, then the SAR model could be expressed as:
+
+$Y-X^T\beta = B(Y-X^T\beta)+\epsilon$ or $(I-B)(Y-X^T\beta)=\epsilon$
+
+where $B$ is a matrix that contains the dependence parameters $b_{ij}$ and $I$
+is the identity matrix of the required dimension. It is important to point out
+that in order for this SAR model to be well defined, the matrix $I − B$ must be
+non-singular.
+
+
+### Conditional autoregressive model (CAR)
+
+The CAR specification relies on the conditional distribution of the spatial
+error terms. In this case, the distribution of $e_i$ conditioning on $e_{−i}$ is
+given.
+
+$$e_i|e_{-i} \sim N(\sum_{j}b_{ij}e_j, \tau_i^2)$$
+
+where $j$ is the neighbors of $i$.
+
+Using Brook’s Lemma we can obtain:
+
+$$e_1, e_2, \ldots, e_n \propto exp\{-\frac{1}{2}y^TD^{-1}(I-B)y\}$$
+
 
 ```{r area2, eval=T, echo=T}
 
@@ -255,9 +292,9 @@ abline(h=nysar_ll$LL, lty=2)
 legend("bottom", legend=c("weighted SAR", "SAR"), lty=c(1,2), lwd=2, bty="n")
 
 # SMA model 
-nysmaw<-spautolm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, family="SMA",
-   listw=NYlistw, weights=POP8)
-summary(nysmaw)
+#nysmaw<-spautolm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, family="SMA",
+#   listw=NYlistw, weights=POP8)
+#summary(nysmaw)
 
 # Spatial economitrics approach
 
@@ -298,4 +335,5 @@ summary(nysmaw)
 #nyerr1 <- errorsarlm(Z~PEXPOSURE+PCTAGE65P+PCTOWNHOME, data=NY8, listw=NYlistwW, etype="emixed")
 #coef(nyerr1)
 #
-#```
+
+```

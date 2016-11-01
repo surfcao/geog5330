@@ -1,0 +1,39 @@
+
+---
+title: "Week 10: Homework"
+output: github_document
+---
+
+# Question \#1
+
+The R package 'spdep' includes a shape file 'columbus.shp' which is a dataset of
+neighborhood-level information on crime, mean home value, mean income, and other
+variables for 49 neighborhoods in Columbus, OH, during 1980. Based on what we
+have learned on the spatial analysis of areal data, please finish the following
+R codes.
+
+```{r homework, eval=T, echo=T}
+rm(list=ls())
+
+library(spdep)
+library(maptools)
+library(RColorBrewer)
+
+
+columbus.poly <- readShapePoly(system.file("etc/shapes/columbus.shp", package="spdep")[1])
+
+
+# Based on the shape file, please build neighorhood using Rook adjacency rule (hint: poly2nb).
+
+
+# Convert the neigbohood specification to a adjacent weight matrix (hint:nb2listw)
+
+
+## Please run Moran test for the crime values in the dataset (columbus.poly$CRIME), and explain the output (hint:moran.test).
+
+
+## Please run the SAR model using CRIME as the dependent variables and house values (HOVAL) and income (INC) as your explainary varibles, and explain the outputs (hint:spautolm). 
+
+
+
+```
