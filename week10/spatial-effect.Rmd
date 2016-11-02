@@ -1,5 +1,5 @@
 ---
-title: "Week 10: Areal data analysis"
+title: "Week 10: Effects of Spatial Dependence"
 output: github_document
 ---
 
@@ -7,23 +7,52 @@ output: github_document
 
 knitr::opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',  warning=FALSE, message=FALSE, results='hide')
 rm(list=ls())
-library(rgdal)
-library(spdep)
-```
-
-
-```{r area1, eval=T, echo=T}
-
-# Simulation study to investigate the effect of not accounting for 
-# residual spatial dependence in spatial regression
 library(fields)
 library(mvtnorm)
+```
+
+# Demonstration of the effects of spatial dependence in regression
+
+Modified based on Dr. Dipankar Bandyopadhyay's code
 
 
-#Generate data with these specs
+```{r spatial, eval=T, echo=T}
+
+# Simulation study to investigate the effect of not accounting for 
+# residual spatial dependence in spatial regression 
+
 n.obs<-100
 n.datasets<-100
 beta<-0.1
+
+
+COVER<-rep(0,n.datasets)
+
+for(rep in 1:n.datasets){
+
+ #Generage data:
+ x<-rnorm(n.obs, mean=0)
+ y<-rnorm(n.obs, mean=x*beta)
+ x<-as.vector(x)
+ y<-as.vector(y)
+
+ #Fit OLS regression
+ fit<-lm(y~x)
+ beta_hat<-summary(fit)$coef[2,1]
+ beta_se<-summary(fit)$coef[2,2]
+
+ #Determine if the true beta is contained in the 
+ #95% interval
+ COVER[rep]<- beta > beta_hat-1.96*beta_se &
+              beta < beta_hat+1.96*beta_se
+}
+
+print("Empirical coverage of 95% intervals")
+print(mean(COVER))
+
+# Now impose spatial correlation on the observations
+
+
 nugget<-0
 partial_sill<-1
 range<-0.05
@@ -55,7 +84,6 @@ for(rep in 1:n.datasets){
 }
 print("Empirical coverage of 95% intervals")
 print(mean(COVER))
-
 
 
 
@@ -97,6 +125,7 @@ points(range,CP-2*SE)
 lines(range,CP-2*SE,lty=2)
 points(range,CP+2*SE)
 lines(range,CP+2*SE,lty=2)
+
 
 ```
 
