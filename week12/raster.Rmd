@@ -13,7 +13,7 @@ library(raster)
 library(devtools)
 install_github('loicdtx/bfastSpatial')
 # load the package
-Library(bfastSpatial)
+library(bfastSpatial)
 
 ```
 
@@ -65,9 +65,45 @@ plot(ndviLL)
 
 ```{R spatial2, eval=T, echo=T}
 
+#  NDVI time series raster brick
 data(tura)
+
+# show the layer names
+names(tura)
+s <- getSceneinfo(names(tura))
+s
+# add a column for years and plot # of scenes per year
+s$year <- as.numeric(substr(s$date, 1, 4))
+hist(s$year, breaks=c(1984:2014), main="p170r55: Scenes per Year", 
+     xlab="year", ylab="# of scenes")
+
+# count number of observations
+obs <- countObs(tura)
+summary(obs)
+# plot it out
+plot(obs)
+
+# mean
 meanVI <- summaryBrick(tura, fun=mean, na.rm=TRUE)
 plot(meanVI)
+
+# define a function that takes a vector as an argument
+checkThresh <- function(x){
+    # first, get rid of NA's
+    x <- x[!is.na(x)]
+    # if there still values left, count how many are above the threshold
+    # otherwise, return a 0
+    if(length(x) > 0){
+        y <- length(x[x > 7000])
+    } else {
+        y <- 0
+    }
+    # return the value
+    return(y)
+}
+# pass this functino to summaryBrick
+customStat <- summaryBrick(tura, fun=checkThresh)
+plot(customStat, main = "# of observations where NDVI > 0.7")
 
 
 # median values for all layers
@@ -96,6 +132,8 @@ plot(tura, 42)
 # starting @ the 1st day in 2009
 bfm <- bfmPixel(tura, start=c(2009, 1), interactive=TRUE)
 # choose the pixel whose time series you want to see by clicking on the map you plotted a moment ago
+bfm
+plot(bfm$bfm)
 
 targcell <- 3492
 bfm <- bfmPixel(tura, cell=targcell, start=c(2009, 1))
@@ -137,18 +175,12 @@ bfm5 <- bfmPixel(tura, cell=targcell, start=c(2009, 1),
 # successful (or a mask had already been applied previously)
 
 # run bfmSpatial over tura for a monitoring period of 2009 -
-t1 <- system.time(
-    bfm <- bfmSpatial(tura, start=c(2009, 1), order=1, mc.cores=8)
-    )
+
+bfm <- bfmSpatial(tura, start=c(2009, 1), order=1, mc.cores=8)
+  
 # plot the result
 plot(bfm)
 
-
-t2 <- system.time(
-    bfm <- bfmSpatial(tura, start=c(2009, 1), order=1, mc.cores=8)
-    )
-# compare processing time with previous run
-t1 - t2
 
 
 change <- raster(bfm, 1)
@@ -161,6 +193,7 @@ plot(months, col=cols, breaks=c(1:12), legend=FALSE)
 # insert custom legend
 legend("bottomright", legend=monthlabs, cex=0.5, fill=cols, ncol=2)
 
+### change magnitude
 
 # extract magn raster
 magn <- raster(bfm, 2)
@@ -171,7 +204,7 @@ op <- par(mfrow=c(1, 2))
 plot(magn_bkp, main="Magnitude: breakpoints")
 plot(magn, main="Magnitude: all pixels")
 
-par(op)
+#change units
 magn <- raster(bfm, 2) / 10000
 
 bfm09 <- bfmSpatial(tura, start=c(2009, 1), monend=c(2010, 1), order=1, mc.cores=8)
