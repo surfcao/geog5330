@@ -1,0 +1,6 @@
+
+---
+title: "Week 10: Effects of Spatial Dependence"
+output: github_document
+---
+
