@@ -41,7 +41,7 @@ library(dismo)
 ```{r ppp, warning=FALSE, eval=T, echo=T}
 
 # Materm cluster proccess
-cluster <- rMatClust(20, 0.05, 4)
+cluster <- rMatClust(90, 0.05, 10)
 plot(cluster)
 
 # log-Gaussian Cox procces
@@ -166,7 +166,7 @@ pred_nf <- dropLayer(predictors, 'biome')
 # predictions to a more restricted area:
 
 ext = extent(-90, -32, -33, 23)
-backg <- randomPoints(pred_nf, n=1000, ext=ext, extf = 1.25)
+backg <- randomPoints(pred_nf, n=1000, ext=ext)
 colnames(backg) = c('lon', 'lat')
 backg=as.data.frame(backg)
 
@@ -185,10 +185,10 @@ backg_test <- backg[group == 1, ]
 r = raster(pred_nf, 1)
 plot(!is.na(r), col=c(' white ' , ' light grey '), legend=FALSE)
 plot(ext, add=TRUE, col= ' red ' , lwd=2)
-points(backg_train, pch= ' + ' , cex=1.5, col= ' yellow ')
-points(backg_test, pch= ' + ' ,  cex=1.5, col= ' red ')
-points(pres_train, pch= ' + ' , col= ' green ')
-points(pres_test, pch= '+' , col= 'blue')
+points(backg_train$lon, backg_train$lat,  col= ' yellow ')
+points(backg_test$lon, backg_test$lat,  col= ' red ')
+points(pres_train$lon, pres_train$lat, pch= '+' , col= ' green ')
+points(pres_test$lon, pres_test$lat, pch= '+' , col= 'blue')
 
 
 # Combine sample locations and environment conditions into one data frame
@@ -256,6 +256,7 @@ points(backg_train, pch='-', cex=0.25)
 jar <- paste(system.file(package="dismo"), "/java/maxent.jar", sep= '') 
 
 xm <- maxent(predictors, p=pres_train, a= backg_train,factors= 'biome')
+
 plot(xm)
 
 # Check the response curve of each environmental conditions
@@ -286,7 +287,7 @@ points(pres_train, pch='+')
 # to only predict to land areas
 seamask <- crop(predictors[[1]], ext)
 distm <- geoDist(pres_train, lonlat=TRUE)
-ds <- predict(seamask, distm, mask=TRUE)
+ds <- predict(distm,seamask, mask=TRUE)
 e <- evaluate(distm, p=pres_test, a=backg_test)
 e
 

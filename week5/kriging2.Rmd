@@ -186,6 +186,7 @@ OKpred=krige.conv(meuse, locations=predSites, krige=krige.control(type.krige='ok
 OKresult=as.data.frame(cbind(OKpred$predict, OKpred$krige.var))
 coordinates(OKresult)=predSites
 gridded(OKresult)=TRUE
+plot(OKresult)
 
 # the constant mean is specified by beta
 mean(meuse$data)
@@ -265,5 +266,13 @@ predictive.quantiles <- out2$quantiles.simulations
 
 
 summary.predictive <- cbind(predictive.mean,predictive.sd,predictive.quantiles) 
+
+
+test=as.data.frame(summary.predictive)
+coordinates(test)=predSites
+gridded(test)=TRUE
+
+spplot(test, 'predictive.mean')
+spplot(test, 'predictive.variance')
 ```
 

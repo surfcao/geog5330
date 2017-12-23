@@ -33,12 +33,12 @@ proj4string(locs) = CRS('+init=epsg:4326')
 
 projLocs<-spTransform(locs, CRS("+init=epsg:2163"))
 
-# Here, please add codes to generate the kenerl density estimation map
+# Here, please add codes to generate the kernel density estimation map
 # of the trees.
 
 
 # Please repeat the above KDE codes using the following options of
-# `sigma` parameters and descible the difference: `sigma=10`,
+# `sigma` parameters and describe the difference: `sigma=10`,
 # `sigma=1000` and `sigma=10000`
 
 
